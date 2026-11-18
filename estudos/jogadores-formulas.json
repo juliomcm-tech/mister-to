@@ -1,0 +1,143 @@
+{
+ "_doc": "Mister To players module. Constants fitted on NBA regular seasons 2010-11..2021-22 (props: 2011-12..2021-22), validated on 2022-23 and 2023-24. See report.md.",
+ "impact": {
+  "formula": "impact_pts = ppg*ppg_c + rpg*rpg_c + apg*apg_c + pm*pm_c + mpg*mpg_c (per-game averages with this team this season; pm = +/- per game). Points of team margin vs. replacement. No clamp at 0 (clamping was slightly worse out-of-sample).",
+  "coef": {
+   "ppg": 0.12,
+   "rpg": 0.07,
+   "apg": 0.2,
+   "pm": 0.105,
+   "mpg": -0.065
+  },
+  "min_gp": 5,
+  "f_rule": "f = sum_i w_i*played_i / sum_i w_i over the team's games this season, w_i = 0.5^((n-1-i)/20) (same weights as engine.js HALF=20)",
+  "team_adjust": "absence_pts(team) = sum_OUT impact*f  -  sum_RETURNING impact*(1-f)   (returning = plays today, f<1)",
+  "apply": "known before the line: subtract from the team-model margin only, m = W*mkt + (1-W)*(mModel - absH + absA). Full amount on top of the line only for news the line has not absorbed yet.",
+  "market_priced_share": 0.66,
+  "oos_test_2022_2024": {
+   "rmse_te_base": 13.6168,
+   "rmse_te_with": 13.4359,
+   "oos_slope": 0.95
+  }
+ },
+ "props": {
+  "K_prev_shrink": 3,
+  "formula": "S=(gp*szn+K*prev)/(gp+K) (szn if no prev); L10,L5 fall back to S; base=a+wS*S+wL10*L10+wL5*L5; mu=max(0, base*(1+c_opp*(allow-1)+c_home*(home-0.5)+c_vac*vac/TEAMTOT+c_min*clamp(L5min/sznmin-1,-0.6,0.6)))",
+  "TEAMTOT": {
+   "pts": 110,
+   "reb": 44,
+   "ast": 25,
+   "fg3m": 12
+  },
+  "vac_rule": "vac_X = sum over teammates j (gp_j>=5) of (f_j - playing_j)*X_pg_j ; playing_j=0 if OUT, 1 otherwise",
+  "allow_rule": "allow_X(opp) = ((sum X conceded by opp this season) + 10*league_avg_X_per_team_game)/(n_opp_games+10) / league_avg_X_per_team_game",
+  "stats": {
+   "pts": {
+    "blend": {
+     "a": 0.641,
+     "wS": 0.543,
+     "wL10": 0.201,
+     "wL5": 0.218
+    },
+    "mult": {
+     "opp_allow": 0.919,
+     "home": 0.022,
+     "vacated": 0.615,
+     "min_trend": 0.152
+    },
+    "sd": {
+     "a": 2.345,
+     "b": 0.386
+    },
+    "normal_median_shift_sd": 0.04
+   },
+   "reb": {
+    "blend": {
+     "a": 0.27,
+     "wS": 0.557,
+     "wL10": 0.175,
+     "wL5": 0.22
+    },
+    "mult": {
+     "opp_allow": 0.926,
+     "home": 0.031,
+     "vacated": 0.61,
+     "min_trend": 0.211
+    },
+    "sd": {
+     "a": 1.308,
+     "b": 0.453
+    },
+    "normal_median_shift_sd": 0.08
+   },
+   "ast": {
+    "blend": {
+     "a": 0.124,
+     "wS": 0.562,
+     "wL10": 0.222,
+     "wL5": 0.194
+    },
+    "mult": {
+     "opp_allow": 0.93,
+     "home": 0.051,
+     "vacated": 0.656,
+     "min_trend": 0.282
+    },
+    "sd": {
+     "a": 1.129,
+     "b": 0.499
+    },
+    "normal_median_shift_sd": 0.08
+   },
+   "fg3m": {
+    "blend": {
+     "a": 0.065,
+     "wS": 0.731,
+     "wL10": 0.119,
+     "wL5": 0.118
+    },
+    "mult": {
+     "opp_allow": 0.778,
+     "home": 0.025,
+     "vacated": 0.469,
+     "min_trend": 0.274
+    },
+    "sd": {
+     "a": 1.12,
+     "b": 0.457
+    },
+    "normal_median_shift_sd": 0.14
+   }
+  },
+  "dist": {
+   "pts": "normal_shift",
+   "reb": "negbin",
+   "ast": "negbin",
+   "fg3m": "negbin"
+  },
+  "probability": "P(X>line) via negative binomial with mean mu and variance max(sd^2, 1.05*mu): r=mu^2/(var-mu), p=r/(r+mu); or normal: 1-Phi((line-(mu-shift*sd))/sd)"
+ },
+ "signals": {
+  "use": [
+   "recent form via blend (L5/L10 ~40% weight)",
+   "teammate absences (vac)",
+   "opponent allowance of that stat",
+   "home",
+   "minutes trend"
+  ],
+  "tiny_optional": [
+   "back-to-back (-1..-2%, does not improve out-of-sample MAE)",
+   "team expected margin (-2% per 10 pts favourite)"
+  ],
+  "noise": [
+   "hot streak last 3 beyond L5/L10",
+   "last game",
+   "revenge game",
+   "3+ days rest",
+   "pace beyond opponent allowance",
+   "blowout risk",
+   "opponent absences (for props)",
+   "team defensive rating beyond stat-specific allowance"
+  ]
+ }
+}

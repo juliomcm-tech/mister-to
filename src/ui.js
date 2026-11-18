@@ -353,10 +353,10 @@ function tabJogadores(g, P) {
       const cell = (pv, sv, rv) => row ? `<b>${rv}</b>` : `<b>${pv.toFixed(1).replace('.', ',')}</b>`;
       return `<tr><td style="text-align:left">${esc(x.P.n)}<div class="small muted">${esc(x.P.pos)} · ${s.gp} j${impactOf(x.P) >= 3 ? ' · <span style="color:var(--c-orange)">peça-chave</span>' : ''}</div></td><td>${Math.round(row ? row[2] : s.min)}</td><td>${cell(pr.pts, s.pts, row && row[3])}</td><td>${cell(pr.reb, s.reb, row && row[4])}</td><td>${cell(pr.ast, s.ast, row && row[5])}</td><td>${cell(pr.tp, s.tp, row && row[6])}</td></tr>`;
     }).join('') + '</table>';
-    if (!done) h += T.slice(0, 3).map(x => { const ln = half(x.pr.pts - 0.85 * x.pr.sdPts), ln2 = half(x.pr.pts); return `<div class="why"><span>${esc(x.P.n)}: mais de ${String(ln).replace('.', ',')} pts · mais de ${String(ln2).replace('.', ',')} pts</span><b>${pct(pOver(x.pr.pts, x.pr.sdPts, ln))} · ${pct(pOver(x.pr.pts, x.pr.sdPts, ln2))}</b></div>`; }).join('');
+    if (!done) h += T.slice(0, 3).map(x => { const ln = lineFor('pts', x.pr.pts, 0.78), ln2 = Math.floor(x.pr.pts) + 0.5; return `<div class="why"><span>${esc(x.P.n)}: mais de ${String(ln).replace('.', ',')} pts · mais de ${String(ln2).replace('.', ',')} pts</span><b>${pct(pOverX('pts', x.pr.pts, ln))} · ${pct(pOverX('pts', x.pr.pts, ln2))}</b></div>`; }).join('');
   });
   if (out.length) h += `<div class="small muted" style="margin-top:6px">Fora deste jogo (lesão): ${out.map(x => esc(x.n)).join(', ')}.</div>`;
-  return h + `<div class="small muted" style="margin-top:8px">Previsão = média recente com mais peso nos últimos jogos, ajustada à defesa do adversário, casa/fora e cansaço. Probabilidade «mais de» = quantas vezes o Tó espera que passe a linha.</div>`;
+  return h + `<div class="small muted" style="margin-top:8px">Previsão = época + últimos 10 + últimos 5 jogos, ajustada ao que o adversário concede, casa/fora, tendência de minutos e colegas que faltam (quem joga apanha parte). Fórmula testada em 14 épocas reais. Para valer a pena, a odd da casa tem de pagar mais do que a odd justa.</div>`;
 }
 
 function tabAnalise(g, P) {
