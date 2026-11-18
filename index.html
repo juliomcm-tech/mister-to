@@ -4,189 +4,239 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Mister Tó · NBA</title>
-<meta name="theme-color" content="#0b1a33">
+<meta name="theme-color" content="#05070b">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,700;1,800;1,900&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#07111f; --bg2:#0b1a33; --card1:rgba(16,36,70,.95); --card2:rgba(9,21,42,.95); --line:#1f3a66; --line2:#2b4c80;
-  --txt:#eef4ff; --mut:#9fb3d6; --or1:#ffc06a; --or2:#ff8a1f; --or3:#d9620b; --orD:#8f3d00;
-  --green:#5ee08a; --red:#e8304f; --blue:#5aa9ff; --gold:#ffd65a;
+  --bg:#05070b; --pn:rgba(9,13,19,.86); --pn2:rgba(14,19,28,.92); --edge:#232d3c; --edge2:#33425a;
+  --txt:#eef2f7; --mut:#8c99ad; --mut2:#5f6b7e;
+  --teal:#19d3a2; --teal2:#0e9e7a; --neon:#ff2a3c;
+  --c-blue:#2f7bff; --c-green:#2bd46b; --c-orange:#ff7a1a; --c-red:#e5243b; --c-purple:#8b5cf6; --c-yellow:#f2c94c;
+  --pos:#2bd46b; --neg:#ff5a6e;
   --cond:'Barlow Condensed','Arial Narrow','Roboto Condensed',system-ui,sans-serif;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0}
-body{background:var(--bg);color:var(--txt);font:15px/1.4 'Barlow','Segoe UI',Roboto,system-ui,sans-serif;min-height:100vh;padding-bottom:calc(78px + env(safe-area-inset-bottom));}
-body:after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;transform:translateZ(0);
-  background:
-   radial-gradient(ellipse 90% 45% at 50% 0%,rgba(29,66,138,.55),transparent 70%),radial-gradient(ellipse 60% 30% at 100% 100%,rgba(200,16,46,.10),transparent 70%),
-   url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 700'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='.06' stroke-width='3'%3E%3Crect x='20' y='20' width='360' height='660' rx='4'/%3E%3Cline x1='20' y1='350' x2='380' y2='350'/%3E%3Ccircle cx='200' cy='350' r='55'/%3E%3Crect x='140' y='20' width='120' height='190'/%3E%3Ccircle cx='200' cy='210' r='60'/%3E%3Cpath d='M50 20 V110 A150 150 0 0 0 350 110 V20'/%3E%3Crect x='140' y='490' width='120' height='190'/%3E%3Ccircle cx='200' cy='490' r='60'/%3E%3Cpath d='M50 680 V590 A150 150 0 0 1 350 590 V680'/%3E%3C/g%3E%3C/svg%3E") center 60px / 100% auto no-repeat,
-   linear-gradient(180deg,#0c1d38 0%,#07111f 45%,#050c18 100%);}
+body{background:var(--bg);color:var(--txt);font:15px/1.4 'Barlow','Segoe UI',Roboto,system-ui,sans-serif;min-height:100vh;padding-bottom:calc(84px + env(safe-area-inset-bottom));}
+/* fundo: pavilhão + escurecer + grelha de cruzes */
+body:before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;background:#05070b url("bg.webp") center top / cover no-repeat;transform:translateZ(0)}
+body:after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72'%3E%3Cpath d='M36 30v12M30 36h12' stroke='%23ff2a3c' stroke-opacity='.16' stroke-width='1.4'/%3E%3C/svg%3E"),
+   linear-gradient(180deg,rgba(5,7,11,.72) 0%,rgba(5,7,11,.55) 35%,rgba(5,7,11,.70) 70%,rgba(5,7,11,.88) 100%);}
+/* moldura de néon */
+.frame{position:fixed;inset:4px;z-index:45;pointer-events:none;border:1.5px solid rgba(255,42,60,.85);border-radius:3px;box-shadow:0 0 14px rgba(255,42,60,.55),inset 0 0 22px rgba(255,42,60,.28)}
 button,input,select{font-family:inherit;font-size:inherit;color:inherit}
-a{color:var(--or1)}
-.wrap{max-width:720px;margin:0 auto;padding:0 12px}
+a{color:var(--teal)}
+.wrap{max-width:720px;margin:0 auto;padding:0 14px}
+svg.i{width:1.15em;height:1.15em;vertical-align:-.2em;flex:0 0 auto}
 /* topo */
-.top{position:sticky;top:0;z-index:20;background:linear-gradient(180deg,rgba(3,8,18,.97),rgba(7,17,33,.94));border-bottom:3px solid transparent;border-image:linear-gradient(90deg,#1d428a 0 33%,#ffffff 33% 66%,#c8102e 66% 100%) 1;box-shadow:0 4px 16px rgba(0,0,0,.5);padding-top:env(safe-area-inset-top);}
-.top .row1{display:flex;align-items:center;gap:10px;padding:8px 12px 4px;max-width:720px;margin:0 auto}
-.top .face{width:42px;height:42px;flex:0 0 42px}
-.top h1{margin:0;font:800 1.35rem/1 var(--cond);text-transform:uppercase;letter-spacing:.05em}
-.top h1 small{display:block;font:700 .72rem/1.2 var(--cond);color:var(--mut);letter-spacing:.08em}
-.top .grow{flex:1}
-.refresh{width:46px;height:46px;border-radius:50%;border:0;border-bottom:3px solid var(--orD);background:linear-gradient(180deg,var(--or1),var(--or2) 55%,var(--or3));color:#2a1200;font-size:1.35rem;box-shadow:0 3px 8px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.5);cursor:pointer}
-.refresh.spin span{display:inline-block;animation:spin 1s linear infinite}
+.top{position:sticky;top:0;z-index:20;padding:calc(10px + env(safe-area-inset-top)) 0 0;background:linear-gradient(180deg,rgba(3,5,8,.96),rgba(5,7,11,.86));backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-bottom:1px solid rgba(255,42,60,.35)}
+.top .r1{display:flex;align-items:center;gap:10px;max-width:720px;margin:0 auto;padding:0 16px 6px}
+.top .face{width:44px;height:44px;flex:0 0 44px;filter:drop-shadow(0 0 8px rgba(255,122,26,.35))}
+.brand{font:italic 900 1.55rem/0.95 var(--cond);text-transform:uppercase;letter-spacing:.02em;text-shadow:0 2px 0 rgba(0,0,0,.6)}
+.brand b{color:var(--neon);text-shadow:0 0 12px rgba(255,42,60,.6)}
+.brand small{display:block;font:italic 700 .72rem/1.3 var(--cond);letter-spacing:.14em;color:var(--mut)}
+.grow{flex:1}
+.ibtn{width:46px;height:46px;border-radius:4px;border:1.5px solid var(--teal);background:linear-gradient(180deg,rgba(25,211,162,.18),rgba(25,211,162,.04));color:var(--teal);display:flex;align-items:center;justify-content:center;box-shadow:0 0 12px rgba(25,211,162,.25);cursor:pointer;font-size:1.3rem}
+.ibtn.spin svg{animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.chips{display:flex;gap:6px;overflow-x:auto;padding:4px 12px 8px;scrollbar-width:none;max-width:720px;margin:0 auto}
-.chips::-webkit-scrollbar{display:none}
-.chip{flex:0 0 auto;display:inline-flex;align-items:center;gap:5px;background:linear-gradient(180deg,#132a4f,#0a1730);border:1px solid #24497e;border-radius:999px;padding:4px 11px 4px 7px;font:700 .86rem var(--cond);white-space:nowrap;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 2px 4px rgba(0,0,0,.4);cursor:pointer}
-.chip b{font-weight:800}
-.upd{font:600 .74rem var(--cond);color:var(--mut);padding:0 12px 6px;max-width:720px;margin:0 auto;letter-spacing:.03em}
+.stats{display:flex;gap:6px;overflow-x:auto;padding:2px 16px 8px;scrollbar-width:none;max-width:720px;margin:0 auto}
+.stats::-webkit-scrollbar{display:none}
+.st{flex:0 0 auto;display:flex;align-items:center;gap:6px;background:rgba(14,19,28,.9);border:1px solid var(--edge2);border-left:3px solid var(--k,var(--teal));padding:4px 10px 4px 7px;font:700 .86rem var(--cond);white-space:nowrap;cursor:pointer}
+.st svg{color:var(--k)}
+.upd{font:600 .74rem var(--cond);color:var(--mut);padding:0 16px 7px;max-width:720px;margin:0 auto;letter-spacing:.04em}
 /* navegação */
-#nav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;background:linear-gradient(180deg,#0b1a33,#050b16);border-top:2px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom));}
-#nav button{flex:1;position:relative;background:none;border:0;color:var(--mut);font:700 .74rem var(--cond);text-transform:uppercase;letter-spacing:.05em;min-height:58px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
-#nav .i{font-size:1.7rem;filter:drop-shadow(0 2px 2px rgba(0,0,0,.7));transition:transform .15s}
+#nav{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;background:linear-gradient(180deg,rgba(10,14,20,.97),rgba(3,5,8,.99));border-top:1px solid var(--edge2);padding:6px 8px calc(8px + env(safe-area-inset-bottom));}
+#nav:before{content:"";position:absolute;left:0;right:0;top:-1px;height:2px;background:linear-gradient(90deg,transparent,var(--teal),transparent);opacity:.6}
+#nav button{flex:1;position:relative;background:none;border:0;color:var(--mut);font:italic 800 .78rem var(--cond);text-transform:uppercase;letter-spacing:.06em;min-height:58px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
+#nav svg{width:26px;height:26px;transition:transform .15s}
 #nav button.on{color:#fff}
-#nav button.on .i{transform:translateY(-3px) scale(1.08);filter:drop-shadow(0 0 6px rgba(255,138,31,.85))}
-#nav button.on:after{content:"";position:absolute;bottom:0;left:24%;right:24%;height:3px;border-radius:3px;background:var(--or2)}
-#nav .nb{position:absolute;top:4px;right:calc(50% - 26px);background:var(--red);color:#fff;border-radius:9px;font:800 .66rem/1 var(--cond);padding:3px 5px}
-/* blocos */
-h2.sec{font:800 1.05rem var(--cond);text-transform:uppercase;letter-spacing:.06em;margin:18px 2px 8px;display:flex;align-items:center;gap:8px}
-h2.sec .r{margin-left:auto;font:700 .78rem var(--cond);color:var(--mut);letter-spacing:.03em;text-transform:none}
-.card{background:linear-gradient(180deg,var(--card1),var(--card2));border:1px solid var(--line);border-radius:14px;box-shadow:0 6px 18px rgba(0,0,0,.35);padding:12px;margin-bottom:10px}
-.muted{color:var(--mut)}
-.small{font-size:.82rem}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font:700 .92rem var(--cond);text-transform:uppercase;letter-spacing:.04em;border-radius:10px;border:1px solid var(--line2);border-bottom-width:3px;background:linear-gradient(180deg,#1a3766,#102446);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 2px 5px rgba(0,0,0,.35);padding:10px 14px;min-height:44px;cursor:pointer;color:#fff}
-.btn:active{transform:translateY(1px);border-bottom-width:2px}
-.btn.or{background:linear-gradient(180deg,var(--or1),var(--or2) 55%,var(--or3));color:#2a1200;border-color:var(--orD)}
-.btn.red{background:linear-gradient(180deg,#ff6b81,#c8102e);border-color:#8e1027}
+#nav button.on svg{color:var(--teal);transform:translateY(-2px);filter:drop-shadow(0 0 6px rgba(25,211,162,.8))}
+#nav button.on:after{content:"";position:absolute;bottom:0;left:26%;right:26%;height:3px;background:var(--teal);box-shadow:0 0 8px var(--teal)}
+#nav .nb{position:absolute;top:3px;right:calc(50% - 24px);background:var(--neon);color:#fff;border-radius:3px;font:800 .66rem/1 var(--cond);padding:3px 5px}
+/* painéis */
+.pn{position:relative;background:var(--pn);border:1px solid var(--edge);margin:12px 0;padding:12px 14px;box-shadow:0 10px 26px rgba(0,0,0,.45)}
+.pn.hl{border:2px solid var(--teal);box-shadow:0 0 18px rgba(25,211,162,.18),0 10px 26px rgba(0,0,0,.45)}
+.pn.hl:before,.pn.hl:after{content:"";position:absolute;left:50%;transform:translateX(-50%);width:44px;height:4px;background:var(--teal)}
+.pn.hl:before{top:-3px}.pn.hl:after{bottom:-3px}
+.pn-h{font:italic 800 1.3rem/1.1 var(--cond);letter-spacing:.01em;margin:0 0 4px;display:flex;align-items:center;gap:8px}
+.pn-h .r{margin-left:auto;font:600 .78rem var(--cond);font-style:normal;color:var(--mut);letter-spacing:.03em}
+.div{height:10px;margin:2px 0 10px;background:
+  linear-gradient(var(--edge2),var(--edge2)) left 50%/calc(50% - 26px) 1px no-repeat,
+  linear-gradient(var(--edge2),var(--edge2)) right 50%/calc(50% - 26px) 1px no-repeat;position:relative}
+.div:after{content:"";position:absolute;left:50%;top:1px;transform:translateX(-50%);width:52px;height:8px;border:1px solid var(--edge2);border-top:0;border-radius:0 0 6px 6px}
+.pn.hl .div{background:linear-gradient(var(--teal),var(--teal)) left 50%/calc(50% - 26px) 1px no-repeat,linear-gradient(var(--teal),var(--teal)) right 50%/calc(50% - 26px) 1px no-repeat}
+.pn.hl .div:after{border-color:var(--teal)}
+.muted{color:var(--mut)} .small{font-size:.82rem} .pos{color:var(--pos)} .neg{color:var(--neg)}
+/* separadores */
+.tabs{display:flex;align-items:stretch;gap:2px;border-bottom:1px solid var(--edge2);margin:12px 0 0;position:relative;padding-left:14px}
+.tabs:before{content:"";position:absolute;left:0;bottom:-1px;width:10px;height:14px;border-left:1px solid var(--edge2);border-top:1px solid var(--edge2)}
+.tabs button{flex:1;border:0;background:none;padding:10px 6px 9px;font:800 .92rem var(--cond);text-transform:uppercase;letter-spacing:.05em;color:#dfe5ee;cursor:pointer;min-height:42px}
+.tabs button.on{background:linear-gradient(180deg,#e8ecf1,#c9d0da);color:#0b0f15;clip-path:polygon(0 0,100% 0,100% 100%,0 100%)}
+/* categorias e atributos (barras) */
+.cat{display:flex;align-items:center;gap:7px;font:800 .92rem var(--cond);text-transform:uppercase;letter-spacing:.04em;margin:14px 0 8px;padding-bottom:5px;position:relative}
+.cat:after{content:"";position:absolute;left:0;bottom:0;width:62%;height:2px;background:linear-gradient(90deg,var(--k),transparent)}
+.cat svg{color:var(--k);width:20px;height:20px}
+.at{margin:0 0 11px}
+.at .l{display:flex;justify-content:space-between;gap:8px;font-size:.92rem;color:#dfe5ee;margin-bottom:4px}
+.at .v{font:800 1rem var(--cond);white-space:nowrap}
+.at .v small{font-weight:600;color:var(--mut)}
+.bar{height:7px;background:#283142;position:relative;overflow:hidden}
+.bar i{position:absolute;left:0;top:0;bottom:0;background:var(--k,var(--teal))}
+.bar.two i+i{left:auto;right:0}
+/* OVR */
+.ovr{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;min-width:46px;padding:3px 6px 2px;border:1.5px solid var(--teal);background:rgba(25,211,162,.10);box-shadow:0 0 10px rgba(25,211,162,.35),inset 0 0 8px rgba(25,211,162,.15);line-height:1}
+.ovr b{font:italic 900 1.35rem/1 var(--cond);color:#fff}
+.ovr small{font:800 .58rem var(--cond);letter-spacing:.1em;color:var(--teal)}
+.big-ovr{display:flex;align-items:center;gap:12px}
+.big-ovr .t{font:800 1.05rem var(--cond);text-transform:uppercase;letter-spacing:.06em}
+.big-ovr .n{font:italic 900 2.6rem/1 var(--cond);padding:2px 12px;border:2px solid var(--teal);background:rgba(25,211,162,.12);box-shadow:0 0 18px rgba(25,211,162,.45);color:#fff}
+.ruler{height:8px;margin-top:6px;background:repeating-linear-gradient(90deg,var(--teal) 0 2px,transparent 2px 12px);opacity:.55}
+/* botões */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;font:800 .95rem var(--cond);text-transform:uppercase;letter-spacing:.05em;border:1.5px solid var(--edge2);background:repeating-linear-gradient(135deg,rgba(255,255,255,.03) 0 4px,transparent 4px 8px),linear-gradient(180deg,#1c2533,#121924);padding:10px 14px;min-height:46px;cursor:pointer;color:#dfe5ee}
+.btn:active{transform:translateY(1px)}
+.btn.go{border-color:var(--teal);color:var(--teal);background:linear-gradient(180deg,rgba(25,211,162,.22),rgba(25,211,162,.06));box-shadow:0 0 12px rgba(25,211,162,.25)}
+.btn.fill{background:linear-gradient(180deg,#2ff0bd,var(--teal) 55%,var(--teal2));color:#03140f;border-color:#0b7a5e}
+.btn.red{border-color:var(--neon);color:#ff8a96;background:linear-gradient(180deg,rgba(255,42,60,.2),rgba(255,42,60,.05))}
 .btn.full{width:100%}
-.btn.sm{min-height:34px;padding:6px 10px;font-size:.8rem}
-.btn[disabled]{opacity:.45;pointer-events:none}
+.btn.sm{min-height:34px;padding:5px 10px;font-size:.8rem}
+.btn[disabled]{opacity:.4;pointer-events:none}
 .row{display:flex;gap:8px;align-items:center}
-.row.wrapr{flex-wrap:wrap}
-.seg{display:flex;background:#0a1730;border:1px solid var(--line2);border-radius:12px;padding:3px;gap:3px}
-.seg button{flex:1;border:0;border-radius:9px;background:none;padding:9px 6px;font:800 .86rem var(--cond);text-transform:uppercase;letter-spacing:.04em;color:var(--mut);cursor:pointer;min-height:40px}
-.seg button.on{background:linear-gradient(180deg,var(--or1),var(--or2));color:#2a1200}
-/* banner */
-.banner{position:relative;margin-top:12px;border-radius:16px;overflow:hidden;padding:14px 14px 14px;border:2px solid rgba(160,190,240,.35);
-  background:radial-gradient(circle at 82% 38%,rgba(255,138,31,.45),transparent 55%),linear-gradient(135deg,#1d428a 0%,#0e2550 55%,#07111f 100%);box-shadow:0 8px 22px rgba(0,0,0,.5);min-height:150px}
-.banner .tag{display:inline-block;background:linear-gradient(180deg,#e8304f,#c8102e);color:#fff;font:800 .7rem/1 var(--cond);text-transform:uppercase;letter-spacing:.06em;padding:5px 9px;border-radius:7px}
-.banner .big{font:800 1.6rem/1.02 var(--cond);text-transform:uppercase;margin:9px 0 4px;max-width:64%}
-.banner .sub{font-size:.88rem;color:#e3ecff;max-width:62%;line-height:1.35}
-.banner .face{position:absolute;right:8px;top:10px;width:118px;height:118px;filter:drop-shadow(0 6px 8px rgba(0,0,0,.55))}
-.daysel{margin:12px 0 4px}
-/* cartão de jogo */
-.gc{background:linear-gradient(180deg,var(--card1),var(--card2));border:1px solid var(--line);border-radius:14px;margin-bottom:10px;overflow:hidden;cursor:pointer;box-shadow:0 5px 14px rgba(0,0,0,.35)}
-.gc .hd{display:flex;align-items:center;gap:6px;padding:7px 10px;background:rgba(255,255,255,.04);border-bottom:1px solid var(--line);font:700 .8rem var(--cond);letter-spacing:.04em;text-transform:uppercase;color:var(--mut)}
-.gc .hd .live{color:#fff;background:var(--red);border-radius:6px;padding:2px 6px;animation:pulse 1.6s ease-in-out infinite}
-@keyframes pulse{50%{opacity:.6}}
-.gc .hd .r{margin-left:auto;display:flex;gap:5px}
-.badge{display:inline-block;border-radius:6px;padding:2px 6px;font:800 .7rem var(--cond);letter-spacing:.04em;text-transform:uppercase}
-.b-or{background:linear-gradient(180deg,var(--or1),var(--or2));color:#2a1200}
-.b-gr{background:rgba(94,224,138,.18);color:var(--green);border:1px solid rgba(94,224,138,.4)}
-.b-rd{background:rgba(255,77,106,.16);color:#ff8fa1;border:1px solid rgba(255,77,106,.4)}
-.b-bl{background:rgba(90,169,255,.16);color:#9fcbff;border:1px solid rgba(90,169,255,.4)}
-.b-mu{background:rgba(255,255,255,.07);color:var(--mut);border:1px solid var(--line2)}
-.gc .tm{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;padding:10px}
-.team{display:flex;align-items:center;gap:8px;min-width:0}
-.team.r{flex-direction:row-reverse;text-align:right}
-.team .nm{font:800 .98rem/1.02 var(--cond);text-transform:uppercase;letter-spacing:.01em;overflow-wrap:normal;word-break:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.team .nm.lg{font-size:.84rem}
-.team .rc{font:600 .76rem/1.25 var(--cond);color:var(--mut);white-space:nowrap}
-.logo{flex:0 0 38px;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:800 .78rem var(--cond);color:#fff;border:2px solid rgba(255,255,255,.35);box-shadow:0 2px 6px rgba(0,0,0,.5);text-shadow:0 1px 2px rgba(0,0,0,.6)}
-.score{text-align:center;min-width:78px}
-.score .s{font:800 1.5rem/1 var(--cond);letter-spacing:.02em}
-.score .p{font:700 .74rem var(--cond);color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
-.gc .ft{padding:0 10px 10px}
-.pbar{display:flex;height:7px;border-radius:5px;overflow:hidden;background:#132a4f;margin:2px 0 6px}
-.pbar i{display:block;height:100%}
-.gc .say{font-size:.86rem;line-height:1.3}
-.gc .mk{font-size:.76rem;color:var(--mut)}
+.row.w{flex-wrap:wrap}
+/* herói */
+.hero{position:relative;overflow:hidden;padding:14px;min-height:168px}
+.hero .tag{display:inline-block;background:var(--neon);color:#fff;font:italic 800 .74rem/1 var(--cond);text-transform:uppercase;letter-spacing:.08em;padding:5px 9px;box-shadow:0 0 12px rgba(255,42,60,.5)}
+.hero .big{font:italic 900 2.5rem/0.95 var(--cond);text-transform:uppercase;margin:10px 0 4px;text-shadow:0 3px 0 rgba(0,0,0,.5)}
+.hero .sub{font-size:.9rem;color:#d3dae5;max-width:60%;line-height:1.35}
+.hero .face{position:absolute;right:6px;top:8px;width:120px;height:120px;filter:drop-shadow(0 0 16px rgba(255,122,26,.35))}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:12px}
+.kpi{background:rgba(255,255,255,.04);border:1px solid var(--edge);border-top:2px solid var(--k);padding:6px 8px}
+.kpi small{display:block;font:700 .66rem var(--cond);letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.kpi b{font:italic 900 1.25rem/1.1 var(--cond)}
 /* boletim */
-.pick{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line)}
+.leg{display:grid;grid-template-columns:26px 1fr 78px;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid rgba(51,66,90,.6)}
+.leg:last-child{border-bottom:0}
+.leg input[type=checkbox]{width:22px;height:22px;accent-color:var(--teal)}
+.leg .t{font:800 1.02rem/1.15 var(--cond)}
+.leg .g{font-size:.76rem;color:var(--mut)}
+.leg .p{font:800 .82rem var(--cond);color:var(--teal)}
+.leg input.od{width:100%;background:#0d131c;border:1px solid var(--edge2);padding:8px 6px;color:#fff;font:800 1rem var(--cond);text-align:center}
+.leg input.od.est{border-color:rgba(242,201,76,.6);background:rgba(242,201,76,.08)}
+.sum{margin-top:10px;padding:10px;background:rgba(25,211,162,.07);border:1px solid rgba(25,211,162,.35)}
+.sum .n{display:flex;justify-content:space-between;align-items:baseline}
+.sum .n b{font:italic 900 1.5rem var(--cond)}
+.pick{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(51,66,90,.6)}
 .pick:last-child{border-bottom:0}
 .pick .g{font:700 .74rem var(--cond);color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
-.pick .l{font:800 1rem/1.15 var(--cond)}
-.pick .o{margin-left:auto;text-align:right;font:800 1.15rem/1 var(--cond);color:var(--or1)}
-.pick .o small{display:block;font:700 .7rem var(--cond);color:var(--green)}
-/* folha (modal) */
-#sheet{position:fixed;inset:0;z-index:50;display:none;background:rgba(2,6,14,.72)}
+.pick .l{font:800 1.04rem/1.15 var(--cond)}
+.pick .o{margin-left:auto;text-align:right;font:italic 900 1.3rem/1 var(--cond);color:#fff}
+.pick .o small{display:block;font:800 .72rem var(--cond);font-style:normal;color:var(--pos)}
+.tg{display:inline-block;padding:2px 6px;font:800 .68rem var(--cond);letter-spacing:.05em;text-transform:uppercase;border:1px solid var(--k,var(--edge2));color:var(--k,var(--mut));background:rgba(255,255,255,.03)}
+/* jogo */
+.gc{position:relative;background:var(--pn);border:1px solid var(--edge);margin:10px 0;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.4)}
+.gc .stripe{height:3px;display:flex}.gc .stripe i{flex:1}
+.gc .hd{display:flex;align-items:center;gap:6px;padding:7px 12px;border-bottom:1px solid var(--edge);font:800 .8rem var(--cond);letter-spacing:.05em;text-transform:uppercase;color:var(--mut)}
+.gc .hd .r{margin-left:auto;display:flex;gap:5px}
+.live{color:#fff;background:var(--neon);padding:2px 7px;animation:pulse 1.6s ease-in-out infinite;box-shadow:0 0 10px rgba(255,42,60,.6)}
+@keyframes pulse{50%{opacity:.6}}
+.gc .tm{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;padding:12px}
+.team{display:flex;align-items:center;gap:8px;min-width:0}
+.team.r{flex-direction:row-reverse;text-align:right}
+.team .nm{font:italic 900 1.05rem/1.02 var(--cond);text-transform:uppercase;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.team .nm.lg{font-size:.9rem}
+.team .nm.xl{font-size:.76rem}
+.team .rc{font:600 .76rem/1.25 var(--cond);color:var(--mut);white-space:nowrap}
+.logo{flex:0 0 40px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;font:italic 900 .8rem var(--cond);color:#fff;clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);text-shadow:0 1px 2px rgba(0,0,0,.7)}
+.score{text-align:center;min-width:80px;padding:0 4px}
+.hdr .score .s{font-size:1.45rem}
+.hdr .team .nm{font-size:.92rem}
+.score .s{font:italic 900 1.55rem/1 var(--cond)}
+.score .p{font:800 .7rem var(--cond);color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
+.gc .ft{padding:0 12px 12px}
+.gc .say{font-size:.88rem;line-height:1.3;margin-top:6px}
+.gc .mk{font-size:.76rem;color:var(--mut)}
+/* folha */
+#sheet{position:fixed;inset:0;z-index:50;display:none;background:rgba(2,3,6,.78)}
 #sheet.on{display:block}
-#sheet .box{position:absolute;left:0;right:0;bottom:0;max-height:92vh;overflow-y:auto;background:linear-gradient(180deg,#0f2347,#08152b);border-top:2px solid var(--or2);border-radius:18px 18px 0 0;padding:6px 14px calc(18px + env(safe-area-inset-bottom));max-width:720px;margin:0 auto;box-shadow:0 -10px 30px rgba(0,0,0,.6)}
-#sheet .grab{width:44px;height:5px;border-radius:3px;background:var(--line2);margin:4px auto 8px}
-#sheet .sh{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-#sheet .sh h3{margin:0;font:800 1.25rem/1.1 var(--cond);text-transform:uppercase;letter-spacing:.04em;flex:1}
-#sheet .x{width:40px;height:40px;border-radius:50%;border:1px solid var(--line2);background:#102446;color:#fff;font-size:1.1rem;cursor:pointer}
-.tbl{width:100%;border-collapse:collapse;font-size:.84rem}
-.tbl th{font:700 .72rem var(--cond);text-transform:uppercase;letter-spacing:.04em;color:var(--mut);text-align:right;padding:5px 4px;border-bottom:1px solid var(--line)}
+#sheet .box{position:absolute;left:0;right:0;bottom:0;top:max(4vh,env(safe-area-inset-top));overflow-y:auto;background:linear-gradient(180deg,rgba(12,17,25,.98),rgba(6,9,14,.99));border-top:2px solid var(--teal);padding:8px 16px calc(20px + env(safe-area-inset-bottom));max-width:720px;margin:0 auto;box-shadow:0 -12px 30px rgba(0,0,0,.7)}
+#sheet .box.short{top:auto;max-height:90vh}
+#sheet .sh{display:flex;align-items:center;gap:8px;margin:6px 0 2px}
+#sheet .sh h3{margin:0;font:italic 900 1.45rem/1.05 var(--cond);text-transform:uppercase;flex:1}
+#sheet .x{width:42px;height:42px;border:1.5px solid var(--edge2);background:#121924;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.tbl{width:100%;border-collapse:collapse;font-size:.86rem}
+.tbl th{font:800 .72rem var(--cond);text-transform:uppercase;letter-spacing:.05em;color:var(--mut);text-align:right;padding:6px 4px;border-bottom:1px solid var(--edge2)}
 .tbl th:first-child,.tbl td:first-child{text-align:left}
-.tbl td{text-align:right;padding:7px 4px;border-bottom:1px solid rgba(31,58,102,.6)}
-.tbl tr.best td{background:rgba(255,138,31,.12)}
-.why{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line);font-size:.88rem}
-.why b{font-family:var(--cond);font-size:1rem}
-.pos{color:var(--green)} .neg{color:#ff8fa1}
-label.f{display:block;font:700 .76rem var(--cond);text-transform:uppercase;letter-spacing:.05em;color:var(--mut);margin:10px 0 4px}
-input.in,select.in{width:100%;background:#0a1730;border:1px solid var(--line2);border-radius:10px;padding:11px 12px;color:#fff;font:700 1.05rem var(--cond)}
-.opinion{margin-top:12px;border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:center;background:rgba(255,255,255,.05);border:1px solid var(--line2)}
+.tbl td{text-align:right;padding:8px 4px;border-bottom:1px solid rgba(51,66,90,.5)}
+.tbl tr.best td{background:rgba(25,211,162,.10)}
+.tbl tr.tap{cursor:pointer}
+label.f{display:block;font:800 .76rem var(--cond);text-transform:uppercase;letter-spacing:.06em;color:var(--mut);margin:12px 0 5px}
+input.in,select.in{width:100%;background:#0d131c;border:1px solid var(--edge2);padding:11px 12px;color:#fff;font:800 1.08rem var(--cond)}
+.seg{display:flex;border:1px solid var(--edge2);background:#0d131c}
+.seg button{flex:1;border:0;background:none;padding:10px 6px;font:800 .88rem var(--cond);text-transform:uppercase;letter-spacing:.05em;color:var(--mut);cursor:pointer;min-height:44px}
+.seg button.on{background:linear-gradient(180deg,#e8ecf1,#c9d0da);color:#0b0f15}
+.opinion{margin-top:12px;padding:10px 12px;display:flex;gap:10px;align-items:center;background:rgba(255,255,255,.03);border:1px solid var(--edge2);border-left:3px solid var(--k,var(--edge2))}
 .opinion .face{width:52px;height:52px;flex:0 0 52px}
-.opinion.good{border-color:rgba(94,224,138,.5);background:rgba(94,224,138,.08)}
-.opinion.bad{border-color:rgba(255,77,106,.5);background:rgba(255,77,106,.08)}
-.form{display:flex;gap:3px}
-.form i{width:18px;height:18px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font:800 .62rem var(--cond);font-style:normal}
-.form .w{background:rgba(94,224,138,.25);color:var(--green)} .form .l{background:rgba(255,77,106,.22);color:#ff8fa1}
-/* contas */
-.acc{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
-.acct{border-radius:14px;padding:10px 8px;cursor:pointer;border:2px solid transparent;background:linear-gradient(180deg,#12305c,#0a1832);box-shadow:0 5px 12px rgba(0,0,0,.4);text-align:center;position:relative}
-.acct.on{border-color:var(--or2)}
-.acct .ic{font-size:1.6rem}
-.acct .n{font:800 .8rem var(--cond);text-transform:uppercase;letter-spacing:.05em;color:var(--mut)}
-.acct .v{font:800 1.2rem/1.1 var(--cond);margin:2px 0}
-.acct .d{font-size:.72rem;color:var(--mut);line-height:1.3}
-.bet{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid rgba(31,58,102,.7)}
+.opinion.good{--k:var(--pos)} .opinion.bad{--k:var(--neg)}
+.form{display:inline-flex;gap:3px}
+.form i{width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font:800 .62rem var(--cond);font-style:normal}
+.form .w{background:rgba(43,212,107,.22);color:var(--pos)} .form .l{background:rgba(229,36,59,.22);color:var(--neg)}
+.cta{position:sticky;bottom:calc(-20px - env(safe-area-inset-bottom));margin:14px -16px calc(-20px - env(safe-area-inset-bottom));padding:10px 16px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(6,9,14,0),rgba(6,9,14,.96) 30%)}
+/* contas / duelo */
+.bet{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid rgba(51,66,90,.6)}
 .bet:last-child{border-bottom:0}
-.bet .who{font-size:1.3rem;line-height:1}
+.bet .who{width:30px;height:30px;flex:0 0 30px;display:flex;align-items:center;justify-content:center;border:1px solid var(--k);color:var(--k);background:rgba(255,255,255,.03)}
 .bet .m{flex:1;min-width:0}
-.bet .t{font:800 .98rem/1.15 var(--cond)}
+.bet .t{font:800 1rem/1.15 var(--cond)}
 .bet .g{font-size:.76rem;color:var(--mut)}
-.bet .v{text-align:right;font:800 1rem/1.15 var(--cond);white-space:nowrap}
-.bet .v small{display:block;font:600 .72rem var(--cond);color:var(--mut)}
-.open-box{border:1px solid rgba(255,138,31,.5);background:rgba(255,138,31,.07)}
-/* duelo */
-.vs{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;text-align:center;margin-top:12px;padding:14px 10px;border-radius:16px;border:2px solid rgba(160,190,240,.35);background:radial-gradient(circle at 50% 50%,rgba(255,138,31,.25),transparent 60%),linear-gradient(135deg,#17357a,#08162e)}
-.vs .face{width:74px;height:74px;margin:0 auto}
-.vs .me{width:74px;height:74px;margin:0 auto;border-radius:50%;background:linear-gradient(180deg,#5aa9ff,#2463d6);display:flex;align-items:center;justify-content:center;font-size:2.4rem;border:3px solid rgba(255,255,255,.35)}
-.vs .nm{font:800 1rem var(--cond);text-transform:uppercase;letter-spacing:.05em;margin-top:4px}
-.vs .pl{font:800 1.5rem/1 var(--cond)}
-.vs .mid{font:800 1.9rem var(--cond);color:var(--or1);text-shadow:0 3px 0 rgba(0,0,0,.4)}
-.duel{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
-.duel > div{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px;padding:7px 8px;font-size:.84rem}
-.duel .h{font:800 .72rem var(--cond);text-transform:uppercase;letter-spacing:.05em;color:var(--mut)}
-.duel .win{border-color:rgba(94,224,138,.55);background:rgba(94,224,138,.08)}
+.bet .legs{font-size:.78rem;color:#c7cfdb;margin-top:3px;line-height:1.35}
+.bet .v{text-align:right;font:italic 900 1.05rem/1.15 var(--cond);white-space:nowrap}
+.bet .v small{display:block;font:600 .72rem var(--cond);font-style:normal;color:var(--mut)}
+.vs{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;text-align:center}
+.vs .av{width:78px;height:78px;margin:0 auto}
+.vs .me{display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#2f7bff,#1546a8);clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);color:#fff}
+.vs .me svg{width:40px;height:40px}
+.vs .nm{font:italic 900 1.05rem var(--cond);text-transform:uppercase;margin-top:6px}
+.vs .mid{font:italic 900 2.2rem var(--cond);color:var(--neon);text-shadow:0 0 14px rgba(255,42,60,.7)}
+.duel{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.duel > div{background:rgba(255,255,255,.03);border:1px solid var(--edge);border-top:2px solid var(--k);padding:7px 9px;font-size:.84rem}
+.duel .h{font:800 .72rem var(--cond);text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}
+.duel .win{box-shadow:0 0 0 1px var(--pos) inset;background:rgba(43,212,107,.07)}
+.accs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.acct{padding:10px 8px;cursor:pointer;border:1px solid var(--edge);border-top:3px solid var(--k);background:var(--pn);text-align:center}
+.acct.on{border-color:var(--teal);box-shadow:0 0 14px rgba(25,211,162,.25);border-top-color:var(--k)}
+.acct svg{color:var(--k);width:24px;height:24px}
+.acct .n{font:800 .74rem var(--cond);text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}
+.acct .v{font:italic 900 1.2rem/1.1 var(--cond);margin:2px 0}
+.acct .d{font-size:.72rem;color:var(--mut)}
+.open-box{border-color:rgba(255,122,26,.55)!important}
 /* mais */
-.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}
-.tile{aspect-ratio:3/3.6;border-radius:12px;position:relative;overflow:hidden;cursor:pointer;border:1px solid rgba(0,0,0,.6);
-  background:radial-gradient(ellipse 80% 30% at 50% 0%,rgba(255,255,255,.3),transparent 70%),linear-gradient(180deg,#173058 0%,#10264a 35%,#8a5a2b 75%,#b5803f 100%);box-shadow:0 5px 12px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.15)}
-.tile .ic{position:absolute;left:0;right:0;top:18%;text-align:center;font-size:2.6rem;filter:drop-shadow(0 5px 5px rgba(0,0,0,.6))}
-.tile .lb{position:absolute;left:0;right:0;bottom:0;padding:8px 4px 9px;text-align:center;font:800 .8rem/1.1 var(--cond);text-transform:uppercase;letter-spacing:.04em;background:linear-gradient(180deg,transparent,rgba(0,0,0,.85) 40%)}
-.empty{text-align:center;padding:24px 12px}
-.empty .face{width:96px;height:96px;margin:0 auto 6px}
-.inst{display:flex;align-items:center;gap:10px;margin:12px 0 0;padding:10px 12px;border-radius:14px;background:linear-gradient(135deg,#17357a,#0e2550);border:1px solid rgba(255,138,31,.55);box-shadow:0 6px 16px rgba(0,0,0,.45)}
-.inst .e{font-size:1.8rem}
-.inst .t{flex:1;min-width:0;line-height:1.25}
-.inst .t b{display:block;font:800 1rem var(--cond);text-transform:uppercase;letter-spacing:.03em}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.tile{position:relative;aspect-ratio:1/1.08;cursor:pointer;background:var(--pn);border:1px solid var(--edge);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:8px;overflow:hidden}
+.tile:before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--k)}
+.tile svg{width:40px;height:40px;color:var(--k);filter:drop-shadow(0 0 8px rgba(0,0,0,.6))}
+.tile b{font:italic 800 .78rem/1.1 var(--cond);text-transform:uppercase;letter-spacing:0;max-width:100%}
+.tile:active{border-color:var(--teal)}
+.empty{text-align:center;padding:22px 12px}
+.empty .face{width:100px;height:100px;margin:0 auto 6px}
+.inst{display:flex;align-items:center;gap:10px}
+.inst .t{flex:1;line-height:1.25}
+.inst .t b{display:block;font:italic 900 1.05rem var(--cond);text-transform:uppercase}
 .inst .t small{color:var(--mut)}
-.inst .x{background:none;border:0;color:var(--mut);font-size:1.1rem;padding:6px;cursor:pointer}
-#toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;background:#132a4f;border:1px solid var(--or2);border-radius:12px;padding:10px 14px;font-weight:600;box-shadow:0 8px 20px rgba(0,0,0,.5);display:none;max-width:90vw;text-align:center}
+.inst .x{background:none;border:0;color:var(--mut);padding:6px;cursor:pointer}
+.why{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px dashed var(--edge2);font-size:.9rem}
+.why b{font:800 1.02rem var(--cond);white-space:nowrap}
+#toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;background:rgba(10,14,20,.97);border:1.5px solid var(--teal);padding:10px 14px;font-weight:600;box-shadow:0 0 18px rgba(25,211,162,.3);display:none;max-width:88vw;text-align:center}
 #toast.on{display:block}
-.stand td,.stand th{padding:6px 3px}
-.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:1px}
+.dot{display:inline-block;width:7px;height:7px;margin-right:1px}
 #print{display:none}
 @media print{
   body{background:#fff;color:#000;padding:0}
-  body:after,.top,#nav,#view,#sheet,#toast{display:none !important}
+  body:before,body:after,.frame,.top,#nav,#view,#sheet,#toast{display:none!important}
   #print{display:block;font:11pt Arial,sans-serif}
   #print table{width:100%;border-collapse:collapse}
   #print th,#print td{border-bottom:1px solid #999;padding:4px;text-align:left;font-size:9.5pt}
@@ -194,27 +244,27 @@ input.in,select.in{width:100%;background:#0a1730;border:1px solid var(--line2);b
 </style>
 </head>
 <body>
+<div class="frame"></div>
 <header class="top">
-  <div class="row1">
+  <div class="r1">
     <div class="face" id="topFace"></div>
-    <h1>Mister Tó<small>NBA · duelo de apostas</small></h1>
+    <div class="brand">Mister <b>Tó</b><small>NBA · MODO PRO</small></div>
     <div class="grow"></div>
-    <button class="refresh" id="btnRefresh" onclick="refresh()" aria-label="Atualizar"><span>🔄</span></button>
+    <button class="ibtn" id="btnRefresh" onclick="refresh()" aria-label="Atualizar"></button>
   </div>
-  <div class="chips" id="chips"></div>
+  <div class="stats" id="chips"></div>
   <div class="upd" id="upd"></div>
 </header>
 <main class="wrap" id="view"></main>
 <nav id="nav">
-  <button data-v="hoje" onclick="go('hoje')"><span class="i">🏀</span>Hoje</button>
-  <button data-v="duelo" onclick="go('duelo')"><span class="i">⚔️</span>Duelo</button>
-  <button data-v="contas" onclick="go('contas')"><span class="i">💰</span>Contas</button>
-  <button data-v="mais" onclick="go('mais')"><span class="i">☰</span>Mais</button>
+  <button data-v="hoje" onclick="go('hoje')"><span data-ic="ball"></span>Hoje</button>
+  <button data-v="duelo" onclick="go('duelo')"><span data-ic="vs"></span>Duelo</button>
+  <button data-v="contas" onclick="go('contas')"><span data-ic="wallet"></span>Contas</button>
+  <button data-v="mais" onclick="go('mais')"><span data-ic="grid"></span>Mais</button>
 </nav>
 <div id="sheet" onclick="if(event.target===this)closeSheet()"><div class="box" id="sheetBox"></div></div>
 <div id="toast"></div>
 <div id="print"></div>
-
 <script>
 'use strict';
 /* =====================================================================
@@ -223,7 +273,7 @@ input.in,select.in{width:100%;background:#0a1730;border:1px solid var(--line2);b
    Dados: ESPN (grátis, sem token). Só vai à internet quando carregas em 🔄.
    Tudo fica guardado no telemóvel (localStorage, chaves «to_…»).
    ===================================================================== */
-const APP_VER = '1.0.2';
+const APP_VER = '2.0.0';
 
 /* ---------- utilitários ---------- */
 const $ = s => document.querySelector(s);
@@ -595,7 +645,7 @@ function snapshotPreds() {
 /* =====================================================================
    3) CONTAS: Tu · Mister Tó · Piloto automático
    ===================================================================== */
-const ACC = { tu: { n: 'Tu', ic: '⭐' }, to: { n: 'Mister Tó', ic: '🏀' }, pi: { n: 'Piloto', ic: '🤖' } };
+const ACC = { tu: { n: 'Tu', ic: 'star', c: 'var(--c-blue)' }, to: { n: 'Mister Tó', ic: 'whistle', c: 'var(--c-orange)' }, pi: { n: 'Piloto', ic: 'robot', c: 'var(--c-purple)' } };
 function accStats(acc) {
   const B = BETS.filter(b => b.acc === acc);
   const dep = DEPOS.filter(d => d.acc === acc).reduce((s, d) => s + d.v, 0);
@@ -622,22 +672,38 @@ function outcome(b, g) {
   else d = b.sel === 'o' ? hs + as - b.line : b.line - (hs + as);
   return d > 0 ? 'won' : d < 0 ? 'lost' : 'push';
 }
+/* múltipla: cada seleção com o seu jogo; uma perdida → perdida; devolvidas contam odd 1 */
+function newMulti(acc, legs, stake, extra) {
+  const odd = r2(legs.reduce((a, l) => a * l.odd, 1));
+  const b = Object.assign({ id: acc + 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), acc, mk: 'multi', legs: legs.map(l => Object.assign({}, l)), g: legs[0].g, gl: legs.length + ' jogos', gd: legs.reduce((m, l) => l.gd > m ? l.gd : m, legs[0].gd), odd, stake: r2(stake), t: Date.now(), st: 'open', ret: 0, lb: 'Múltipla · ' + legs.length + ' seleções' }, extra || {});
+  BETS.push(b); return b;
+}
+function settleMulti(b) {
+  let eff = 1, pending = false, lost = false;
+  b.legs.forEach(l => { const g = DB.games[l.g]; const r = g ? outcome(l, g) : null; l.r = r; if (g && g.hs != null) l.res = g.hs + '-' + g.as; if (r === null) pending = true; else if (r === 'lost') lost = true; else if (r === 'won') eff *= l.odd; });
+  if (lost) { b.st = 'lost'; b.ret = 0; }
+  else if (pending) return false;
+  else { b.st = eff > 1.0001 ? 'won' : 'push'; b.ret = r2(b.stake * eff); }
+  b.tset = Date.now(); return true;
+}
 function settleAll() {
   let n = 0;
   BETS.forEach(b => {
     if (b.st !== 'open') return;
+    if (b.mk === 'multi') { if (settleMulti(b)) n++; return; }
     const g = DB.games[b.g]; if (!g) return;
     const r = outcome(b, g); if (!r) return;
     b.st = r; b.ret = r === 'won' ? r2(b.stake * b.odd) : (r === 'push' || r === 'void') ? b.stake : 0; b.res = g.hs != null ? g.hs + '-' + g.as : ''; b.tset = Date.now(); n++;
   });
   if (n) saveBets();
+  safeGrade();
   return n;
 }
 /* 🤖 piloto: aposta sozinho em cada «valor» do Tó (uma por jogo, antes do início) */
 function pilotRun() {
   if (!CFG.piOn) return 0;
   const now = Date.now(); let n = 0;
-  const done = new Set(BETS.filter(b => b.acc === 'pi').map(b => b.g));
+  const done = new Set(BETS.filter(b => b.acc === 'pi' && b.mk !== 'multi').map(b => b.g));
   Object.values(DB.games).filter(g => gValid(g) && g.s === 'pre' && !done.has(g.id)).forEach(g => {
     const t0 = new Date(g.d).getTime(); if (t0 < now + 5 * 60e3 || t0 > now + 36 * 3600e3) return;
     const P = predict(g), v = P.value;
@@ -647,9 +713,131 @@ function pilotRun() {
     newBet('pi', g, v, stake, { p: r2(v.p), ev: r2(v.ev), der: v.der });
     n++;
   });
+  // e aposta o boletim seguro desta noite (uma vez por noite, só com 2+ seleções)
+  const night = todayET(), key = 'piSafe_' + night;
+  if (!LS.get(key, 0)) {
+    const C = safeCands(0), pick = safeAuto(C);
+    const legs = C.filter((_, i) => pick.has(i));
+    const stake = Math.max(CFG.min, r2(CFG.piStake));
+    if (legs.length >= 2 && accStats('pi').bal >= stake) { newMulti('pi', legs.map(safeLeg), stake, { src: 'seguro', p: r2(legs.reduce((a, c) => a * c.p, 1)), der: true }); LS.set(key, 1); n++; }
+  }
   if (n) saveBets();
   return n;
 }
+
+/* =====================================================================
+   🛡️ BOLETIM SEGURO (como no Mister Zé: só jogos do próprio dia)
+   Cada seleção com ≥85% para o Tó; junta-as enquanto o boletim inteiro
+   fica ≥70%. No basket não há empate nem dupla hipótese, por isso usa:
+   favorito a ganhar, handicap alternativo e total alternativo — sempre
+   no lado para onde o Tó inclina em relação à casa de apostas.
+   As odds das linhas alternativas são estimadas: mete as da Betano.
+   ===================================================================== */
+const SAFE_LEG = 0.85, SAFE_SLIP = 0.70, Z86 = 1.08;
+const half = v => Math.round(v - 0.5) + 0.5;                          // linha acabada em ,5 (sem devolução)
+function safeCands(dayOff) {
+  const d = ymdAdd(todayET(), dayOff), now = Date.now(), out = [];
+  Object.values(DB.games).filter(g => gValid(g) && g.s === 'pre' && g.ed === d && new Date(g.d).getTime() > now + 10 * 60e3).forEach(g => {
+    const P = predict(g), o = g.o || {};
+    const mm = o.hl != null ? -o.hl : P.m, mt = o.tl != null ? o.tl : P.t;
+    const estOdd = pm => r2(Math.max(1.01, 1 / (Math.min(0.97, pm) * 1.045)));
+    const opts = [];
+    // a) favorito ganha
+    const sH = P.m >= 0, pML = sH ? P.pH : 1 - P.pH, pMm = Phi((sH ? mm : -mm) / SDM);
+    const mlC = P.cands.find(c => c.mk === 'ml' && c.sel === (sH ? 'h' : 'a') && !c.der && !c.sus);
+    opts.push({ mk: 'ml', sel: sH ? 'h' : 'a', line: null, p: pML, odd: mlC ? mlC.odd : estOdd(pMm), est: !mlC });
+    // b) handicap alternativo no lado do Tó
+    const side = P.m - mm >= 0 ? 'h' : 'a';
+    const L = side === 'h' ? half(Z86 * SDM - mm) : half(mm + Z86 * SDM);
+    const pMs = side === 'h' ? 1 - Phi((-L - mm) / SDM) : Phi((L - mm) / SDM);
+    opts.push({ mk: 'sp', sel: side, line: L, p: probs(P, 'sp', side, L).w, odd: estOdd(pMs), est: true });
+    // c) total alternativo no lado do Tó
+    const ov = P.t - mt >= 0, TL = ov ? half(mt - Z86 * SDT) : half(mt + Z86 * SDT);
+    const pMt = ov ? 1 - Phi((TL - mt) / SDT) : Phi((TL - mt) / SDT);
+    opts.push({ mk: 'tot', sel: ov ? 'o' : 'u', line: TL, p: probs(P, 'tot', ov ? 'o' : 'u', TL).w, odd: estOdd(pMt), est: true });
+    const best = opts.filter(x => x.p >= SAFE_LEG).sort((a, b) => b.p - a.p)[0];
+    if (best) out.push(Object.assign(best, { g, lb: selLabel(g, best.mk, best.sel, best.line) }));
+  });
+  return out.sort((a, b) => b.p - a.p);
+}
+function safeAuto(C) {
+  const pick = new Set(); let P = 1;
+  C.forEach((c, i) => { if (pick.size < 5 && (i === 0 || P * c.p >= SAFE_SLIP)) { P *= c.p; pick.add(i); } });
+  return pick;
+}
+const safeLeg = (c, odd) => ({ g: c.g.id, gl: gLabel(c.g), gd: c.g.d, mk: c.mk, sel: c.sel, line: c.line, odd: r2(odd || c.odd), lb: c.lb, p: r2(c.p), est: !!c.est });
+/* diário do seguro: cada seleção que o Tó escolheu, uma vez */
+function safeLogSave(list) {
+  const L = LS.get('safe', {}); let ch = false;
+  list.forEach(c => { const k = c.g.id + '|' + c.mk + '|' + c.sel + '|' + c.line; if (L[k]) return; L[k] = { g: c.g.id, mk: c.mk, sel: c.sel, line: c.line, p: r2(c.p), t: Date.now() }; ch = true; });
+  const ks = Object.keys(L); if (ks.length > 500) ks.sort((a, b) => L[a].t - L[b].t).slice(0, ks.length - 500).forEach(k => delete L[k]);
+  if (ch) LS.set('safe', L);
+}
+function safeGrade() {
+  const L = LS.get('safe', {}); let ch = false;
+  Object.values(L).forEach(l => { if (l.w != null) return; const g = DB.games[l.g]; if (!g) return; const r = outcome(l, g); if (r === 'won') l.w = 1; else if (r === 'lost') l.w = 0; else if (r) l.w = -1; else return; ch = true; });
+  if (ch) LS.set('safe', L);
+}
+function safeStats() {
+  const g = Object.values(LS.get('safe', {})).filter(l => l.w === 0 || l.w === 1);
+  return g.length ? { n: g.length, w: g.filter(l => l.w === 1).length, p: g.reduce((a, l) => a + l.p, 0) / g.length } : null;
+}
+
+/* =====================================================================
+   📊 CARTÃO DA EQUIPA (estilo jogo: 0–99)
+   ===================================================================== */
+function teamRt(t) {
+  const M = getModel(), r = M.rec[t] || { w: 0, l: 0, hw: 0, hl: 0, aw: 0, al: 0, pf: 0, pa: 0, last: [] };
+  const gp = r.w + r.l, l10 = (r.last || []).slice(-10), wf = l10.length ? l10.filter(x => x.w).length / l10.length : 0.5;
+  const hp = r.hw + r.hl ? r.hw / (r.hw + r.hl) : 0.5, ap = r.aw + r.al ? r.aw / (r.aw + r.al) : 0.5;
+  const tot = gp ? (r.pf + r.pa) / gp : 2 * M.L;
+  const k = v => Math.round(clamp(v, 25, 99));
+  return { ovr: k(78 + M.net(t) * 1.8), atk: k(76 + (M.off[t] || 0) * 2.4), def: k(76 - (M.def[t] || 0) * 2.4), form: k(45 + wf * 54), home: k(42 + hp * 57), away: k(42 + ap * 57), pace: k(72 + (tot - 2 * M.L) * 1.1), gp, l10 };
+}
+
+
+/* =====================================================================
+   5) ÍCONES (desenho próprio, traço simples)
+   ===================================================================== */
+const ICP = {
+  ball: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3v18M5.6 5.6c3 3 3 9.8 0 12.8M18.4 5.6c-3 3-3 9.8 0 12.8"/>',
+  vs: '<path d="M5 5l9 9M19 5l-9 9M12.5 15.5l3-3M8.5 12.5l3 3M15 15l4 4M9 15l-4 4M5 5h3M5 5v3M19 5h-3M19 5v3"/>',
+  wallet: '<rect x="3" y="6" width="18" height="14" rx="1.5"/><path d="M3 10h18M16 15h2M6 6V4.5h11"/>',
+  grid: '<rect x="4" y="4" width="6.5" height="6.5"/><rect x="13.5" y="4" width="6.5" height="6.5"/><rect x="4" y="13.5" width="6.5" height="6.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5"/>',
+  refresh: '<path d="M20 11a8 8 0 0 0-14.9-3.5M4 4v4h4M4 13a8 8 0 0 0 14.9 3.5M20 20v-4h-4"/>',
+  trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8M10 17h4"/>',
+  book: '<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11M9 8h6"/>',
+  chip: '<rect x="7" y="7" width="10" height="10" rx="1"/><path d="M10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4M10 10h4v4h-4z"/>',
+  gear: '<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/>',
+  save: '<path d="M5 4h11l3 3v13H5zM8 4v5h7V4M8 20v-6h8v6"/>',
+  pulse: '<path d="M3 12h4l2-6 4 12 2-6h6"/>',
+  phone: '<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18.5h2M12 6v7M9.5 10.5 12 13l2.5-2.5"/>',
+  shield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>',
+  gem: '<path d="M6 4h12l3 5-9 11L3 9zM3 9h18M9 4 7.5 9 12 20l4.5-11L15 4"/>',
+  fire: '<path d="M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-3 2-4 2-7 1 1 2 2 2 4 1-2 1-4 1-7z"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  bandage: '<rect x="2.5" y="8.5" width="19" height="7" rx="3.5" transform="rotate(-45 12 12)"/><path d="M10.5 10.5h.01M13.5 13.5h.01M12 12h.01"/>',
+  chart: '<path d="M4 20V11M10 20V5M16 20v-7M2 20h20"/>',
+  star: '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',
+  robot: '<rect x="5" y="8" width="14" height="11" rx="2"/><path d="M12 4.5V8M9 13h.01M15 13h.01M9 16h6M3 12v3M21 12v3"/><circle cx="12" cy="3.5" r="1"/>',
+  whistle: '<path d="M3 11a5 5 0 1 0 9.6 2H21V9h-9.6A5 5 0 0 0 3 11zM8 11h.01M14 9V6"/>',
+  share: '<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"/>',
+  print: '<path d="M7 9V3h10v6M7 17H4v-7h16v7h-3M7 14h10v7H7z"/>',
+  download: '<path d="M12 3v12M7 10l5 5 5-5M4 20h16"/>',
+  x: '<path d="M6 6l12 12M18 6 6 18"/>',
+  check: '<path d="M5 12l5 5 9-10"/>',
+  target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+  coins: '<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/>',
+  list: '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+  cal: '<rect x="3" y="5" width="18" height="16" rx="1"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  court: '<rect x="3" y="4" width="18" height="16"/><path d="M3 12h18"/><circle cx="12" cy="12" r="3"/><path d="M8 4v3a4 4 0 0 0 8 0V4M8 20v-3a4 4 0 0 1 8 0v3"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/>',
+  bolt: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>'
+};
+const ic = (n, cls) => `<svg class="i ${cls || ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICP[n] || ''}</svg>`;
+const attr = (label, v, color, txt, max) => `<div class="at" style="--k:${color}"><div class="l"><span>${label}</span><span class="v">${txt != null ? txt : `${v} <small>/ ${max || 99}</small>`}</span></div><div class="bar"><i style="width:${clamp(v / (max || 99) * 100, 0, 100).toFixed(1)}%"></i></div></div>`;
+const catH = (icon, text, color, right) => `<div class="cat" style="--k:${color}">${ic(icon)}${text}${right ? `<span class="muted small" style="margin-left:auto;text-transform:none;letter-spacing:0">${right}</span>` : ''}</div>`;
+const pnH = (title, right) => `<div class="pn-h">${title}${right ? `<span class="r">${right}</span>` : ''}</div><div class="div"></div>`;
 
 /* =====================================================================
    4) A CARA DO MISTER TÓ (desenho original)
@@ -680,25 +868,27 @@ ${mouth}
 </svg>`;
 }
 
+
+
 /* =====================================================================
-   5) ECRÃS
+   6) ECRÃS
    ===================================================================== */
 let VIEW = (location.hash || '#hoje').slice(1);
 if (!['hoje', 'duelo', 'contas', 'mais'].includes(VIEW)) VIEW = 'hoje';
-let DAY = 0, ACCF = 'all';
+let DAY = 0, ACCF = 'all', BT = 'seg', GT = 'ana';
 function go(v) { VIEW = v; history.replaceState(null, '', '#' + v); render(); window.scrollTo(0, 0); }
 function setUpd(t) { $('#upd').textContent = t; }
+const tCol = id => '#' + ((DB.teams[id] && DB.teams[id].c) || '33425a');
 function logo(id, sz) {
-  const t = DB.teams[id] || { ab: '?', c: '553399', c2: 'ff8a1f' };
-  const s = sz ? `width:${sz}px;height:${sz}px;flex-basis:${sz}px;font-size:${sz / 3.2}px;` : '';
-  return `<span class="logo" style="${s}background:linear-gradient(160deg,#${esc(t.c)},#${esc(t.c)}cc);border-color:#${esc(t.c2)}">${esc(t.ab)}</span>`;
+  const t = DB.teams[id] || { ab: '?', c: '33425a', c2: 'ff7a1a' };
+  const s = sz ? `width:${sz}px;height:${sz}px;flex-basis:${sz}px;font-size:${sz / 3.3}px;` : '';
+  return `<span class="logo" style="${s}background:linear-gradient(160deg,#${esc(t.c)},#${esc(t.c)}aa 60%,#${esc(t.c2)}88)">${esc(t.ab)}</span>`;
 }
 function renderTop() {
-  const S = k => accStats(k);
-  const tu = S('tu'), to = S('to'), pi = S('pi');
-  $('#chips').innerHTML = `<span class="chip" onclick="go('contas')">⭐ <b>${eur(tu.bal)}</b></span><span class="chip" onclick="go('contas')">🏀 <b>${eur(to.bal)}</b></span><span class="chip" onclick="go('contas')">🤖 <b>${eur(pi.bal)}</b></span>`;
+  const s = k => accStats(k);
+  $('#chips').innerHTML = ['tu', 'to', 'pi'].map(k => `<span class="st" style="--k:${ACC[k].c}" onclick="ACCF='${k}';go('contas')">${ic(ACC[k].ic)}${eur(s(k).bal)}</span>`).join('');
   const last = LS.get('last', 0);
-  setUpd(last ? 'Atualizado ' + new Date(last).toLocaleString('pt-PT', { weekday: 'short', hour: '2-digit', minute: '2-digit' }) + ' · carrega em 🔄 para ir à ESPN' : 'Ainda sem dados · carrega em 🔄 para o Tó ir buscar os jogos');
+  setUpd(last ? 'Atualizado ' + new Date(last).toLocaleString('pt-PT', { weekday: 'short', hour: '2-digit', minute: '2-digit' }) + ' · toca em ↻ para ir à ESPN' : 'Ainda sem dados · toca em ↻ para o Tó ir buscar os jogos');
   const nOpen = BETS.filter(b => b.acc === 'tu' && b.st === 'open').length;
   document.querySelectorAll('#nav button').forEach(b => {
     b.classList.toggle('on', b.dataset.v === VIEW);
@@ -713,6 +903,7 @@ function render() {
   else if (VIEW === 'duelo') v.innerHTML = viewDuelo();
   else if (VIEW === 'contas') v.innerHTML = viewContas();
   else v.innerHTML = viewMais();
+  if (VIEW === 'hoje') ssSum();
 }
 
 /* ---------- HOJE ---------- */
@@ -720,116 +911,204 @@ function dayGames(off) {
   const d = ymdAdd(todayET(), off);
   return Object.values(DB.games).filter(g => gValid(g) && g.ed === d).sort((x, y) => x.d < y.d ? -1 : 1);
 }
+const nmLg = id => { const n = tName(id), w = Math.max(...n.split(/\s+/).map(x => x.length)); return w >= 10 ? ' xl' : w >= 7 ? ' lg' : ''; };
 function viewHoje() {
-  const G = dayGames(DAY);
-  const lbl = ['Ontem', 'Esta noite', 'Amanhã'][DAY + 1];
+  const G = dayGames(DAY), lbl = ['Ontem', 'Esta noite', 'Amanhã'][DAY + 1];
   const pre = G.filter(g => g.s === 'pre');
   const picks = pre.map(g => ({ g, P: predict(g) })).filter(x => x.P.value).sort((a, b) => b.P.value.ev - a.P.value.ev);
   const live = G.filter(g => g.s === 'in').length;
+  const C = DAY >= 0 ? safeCands(DAY) : [];
+  const auto = safeAuto(C), pSafe = C.filter((_, i) => auto.has(i)).reduce((a, c) => a * c.p, 1);
   let say;
-  if (!Object.keys(DB.games).length) say = 'Carrega em 🔄 e eu vou buscar a época toda à ESPN. Demora uns segundos.';
+  if (!Object.keys(DB.games).length) say = 'Toca em ↻ e eu vou buscar a época toda à ESPN.';
   else if (!G.length) say = 'Não há jogos da NBA ' + (DAY ? lbl.toLowerCase() : 'esta noite') + '.';
-  else if (live) say = `${live} jogo${live > 1 ? 's' : ''} a decorrer. Carrega em 🔄 para ver o marcador.`;
-  else if (picks.length) say = `Encontrei ${picks.length} aposta${picks.length > 1 ? 's' : ''} com valor. Confirma sempre a odd na Betano.`;
-  else if (pre.length) say = 'Hoje não vejo valor claro. Às vezes o melhor é não apostar.';
-  else say = 'Jogos acabados. Vê se acertei 👇';
+  else if (live) say = `${live} jogo${live > 1 ? 's' : ''} a decorrer. Toca em ↻ para o marcador.`;
+  else if (pre.length) say = picks.length || C.length ? 'O boletim de hoje está pronto. Confirma as odds na Betano.' : 'Hoje não vejo nada claro. Às vezes o melhor é não apostar.';
+  else say = 'Jogos acabados. Vê se acertei.';
   const first = pre[0] || G[0];
-  let h = `<div class="banner"><span class="tag">${esc(lbl)} na NBA</span>
+  let h = `<div class="pn hero"><span class="tag">${esc(lbl)} na NBA</span>
     <div class="big">${G.length} jogo${G.length === 1 ? '' : 's'}</div>
-    <div class="sub">${first ? '1.º às ' + hhmm(first.d) + ' (hora de cá) · ' : ''}${esc(say)}</div>
-    <div class="face">${toFace(picks.length ? 'win' : 'ok')}</div></div>
-  ${installBanner()}
-  <div class="seg daysel">${['Ontem', 'Esta noite', 'Amanhã'].map((t, i) => `<button class="${DAY === i - 1 ? 'on' : ''}" onclick="DAY=${i - 1};render()">${t}</button>`).join('')}</div>`;
-  if (picks.length) {
-    h += `<h2 class="sec">🏀 Boletim do Tó<span class="r">só jogos ${DAY === 1 ? 'de amanhã' : 'desta noite'}</span></h2><div class="card">` +
-      picks.map(({ g, P }) => { const v = P.value, cf = conf(v.ev); return `<div class="pick" onclick="openGame('${g.id}')"><div><div class="g">${hhmm(g.d)} · ${esc(tAb(g.h))} – ${esc(tAb(g.a))} · ${esc(mkName(v.mk))}</div><div class="l">${esc(selLabel(g, v.mk, v.sel, v.line))} <span class="badge ${cf[1]}">${cf[0]}</span></div><div class="g">Tó dá ${pct(v.p)} · odd justa ${odd2(v.fair)}${v.der ? ' · odd estimada' : ''}</div></div><div class="o">${odd2(v.odd)}<small>valor ${sPct(v.ev)}</small></div></div>`; }).join('') +
-      `<div class="small muted" style="margin-top:6px">«Valor» = o Tó acha que a odd paga mais do que devia. Não é certeza: é vantagem a longo prazo.</div></div>`;
-  }
-  if (G.length) h += `<h2 class="sec">📅 Jogos<span class="r">casa – fora · 😴 = jogou ontem</span></h2>` + G.map(gameCard).join('');
-  else if (!Object.keys(DB.games).length) h += `<div class="card empty"><div class="face">${toFace('ok')}</div><b>Olá! Sou o Mister Tó.</b><div class="muted small" style="margin:6px 0 12px">Só percebo de basket. Estudo a força de cada equipa, o cansaço e o fator casa, comparo com as odds e faço duelos contigo.</div><button class="btn or" onclick="refresh()">🔄 Ir buscar os jogos</button></div>`;
+    <div class="sub">${esc(say)}</div>
+    <div class="face">${toFace(picks.length || C.length ? 'win' : 'ok')}</div>
+    <div class="kpis"><div class="kpi" style="--k:var(--c-blue)"><small>1.º jogo</small><b>${first ? hhmm(first.d) : '—'}</b></div>
+      <div class="kpi" style="--k:var(--c-orange)"><small>Valor</small><b>${picks.length}</b></div>
+      <div class="kpi" style="--k:var(--teal)"><small>Seguro</small><b>${auto.size ? pct(pSafe) : '—'}</b></div></div></div>`;
+  h += installBanner();
+  h += `<div class="tabs">${['Ontem', 'Esta noite', 'Amanhã'].map((t, i) => `<button class="${DAY === i - 1 ? 'on' : ''}" onclick="DAY=${i - 1};render()">${t}</button>`).join('')}</div>`;
+  if (DAY >= 0 && pre.length) h += boletimPanel(C, auto, picks);
+  if (G.length) h += catH('cal', 'Jogos', 'var(--c-blue)', 'casa – fora') + G.map(gameCard).join('');
+  else if (!Object.keys(DB.games).length) h += `<div class="pn empty"><div class="face">${toFace('ok')}</div><div class="pn-h" style="justify-content:center">Olá! Sou o Mister Tó.</div><div class="muted small" style="margin:6px 0 14px">Só percebo de basket. Estudo a força de cada equipa, o cansaço e o fator casa, comparo com as odds e faço duelos contigo.</div><button class="btn fill" onclick="refresh()">${ic('refresh')} Ir buscar os jogos</button></div>`;
   return h;
 }
-const nmLg = id => /\S{8,}/.test(tName(id)) ? ' lg' : '';
+
+/* ---------- 🛡️ BOLETIM DE HOJE ---------- */
+let SS = { k: '', C: [], sel: new Set(), odd: {} };
+const legKey = c => c.g.id + '|' + c.mk + '|' + c.sel + '|' + c.line;
+function boletimPanel(C, auto, picks) {
+  const k = DAY + '|' + todayET();
+  if (SS.k !== k) { SS = { k, C, sel: new Set(C.filter((_, i) => auto.has(i)).map(legKey)), odd: {}, stake: Math.max(CFG.min, 1) }; }
+  SS.C = C; SS.auto = new Set(C.filter((_, i) => auto.has(i)).map(legKey));
+  if (C.length) safeLogSave(C.filter((_, i) => auto.has(i)));
+  let h = `<div class="pn hl">${pnH(`${ic('target')} Boletim de hoje`, DAY ? 'jogos de amanhã' : 'só jogos desta noite')}
+    <div class="seg"><button class="${BT === 'seg' ? 'on' : ''}" onclick="BT='seg';render()">${ic('shield')} Seguro</button><button class="${BT === 'val' ? 'on' : ''}" onclick="BT='val';render()">${ic('gem')} Valor${picks.length ? ' · ' + picks.length : ''}</button></div>`;
+  if (BT === 'seg') {
+    if (!C.length) h += `<div class="small muted" style="margin-top:10px">Nenhuma seleção chega aos ${pct(SAFE_LEG)} esta noite. Melhor não forçar.</div>`;
+    else {
+      h += `<div class="small muted" style="margin:10px 0 2px">As seleções mais seguras, juntas enquanto o boletim inteiro passa dos ${pct(SAFE_SLIP)}. <b>Seguro não é certo</b>: num boletim de 70%, 3 em cada 10 falham.</div>` +
+        C.map((c, i) => { const key = legKey(c), od = SS.odd[key] != null ? SS.odd[key] : c.odd; return `<div class="leg"><input type="checkbox" ${SS.sel.has(key) ? 'checked' : ''} onchange="ssTog(${i},this.checked)">
+        <div><div class="t">${esc(c.lb)}</div><div class="g">${hhmm(c.g.d)} · ${esc(tAb(c.g.h))} – ${esc(tAb(c.g.a))} · ${esc(mkName(c.mk))}</div><div class="p">Tó ${pct(c.p)}${c.est ? ' · odd estimada' : ''}</div></div>
+        <input class="od${c.est && SS.odd[key] == null ? ' est' : ''}" inputmode="decimal" value="${String(od).replace('.', ',')}" oninput="ssOdd(${i},this)"></div>`; }).join('') +
+        `<div class="sum" id="ssSum"></div>`;
+    }
+    const st = safeStats();
+    if (st) h += `<div class="small muted" style="margin-top:8px">${ic('chart')} Seguro até hoje: acertou <b>${st.w}/${st.n}</b> seleções (${pct(st.w / st.n)}) · prometia ${pct(st.p)}</div>`;
+  } else {
+    h += picks.length ? picks.map(({ g, P }) => { const v = P.value, i = P.cands.indexOf(v); return `<div class="pick"><div style="min-width:0"><div class="g">${hhmm(g.d)} · ${esc(tAb(g.h))} – ${esc(tAb(g.a))} · ${esc(mkName(v.mk))}</div><div class="l">${esc(selLabel(g, v.mk, v.sel, v.line))}</div><div class="g" style="text-transform:none">Tó ${pct(v.p)} · justa ${odd2(v.fair)}${v.der ? ' · odd estimada' : ''}</div></div>
+      <div class="o">${odd2(v.odd)}<small>valor ${sPct(v.ev)}</small></div><button class="btn go sm" onclick="openBet('${g.id}',${i})">Apostar</button></div>`; }).join('') + `<div class="small muted" style="margin-top:8px">«Valor» = a odd paga mais do que devia. É vantagem a longo prazo, não certeza.</div>`
+      : `<div class="small muted" style="margin-top:10px">Esta noite o Tó não encontra odds com pelo menos ${pct(CFG.evMin)} de valor.</div>`;
+  }
+  return h + '</div>';
+}
+function ssTog(i, on) { const k = legKey(SS.C[i]); if (on) SS.sel.add(k); else SS.sel.delete(k); ssSum(); }
+function ssOdd(i, el) { const v = num(el.value); SS.odd[legKey(SS.C[i])] = v; el.classList.remove('est'); ssSum(); }
+const ssLegs = () => SS.C.filter(c => SS.sel.has(legKey(c))).map(c => ({ c, odd: SS.odd[legKey(c)] != null ? SS.odd[legKey(c)] : c.odd }));
+function ssSum() {
+  const el = $('#ssSum'); if (!el) return;
+  const L = ssLegs();
+  if (!L.length) { el.innerHTML = '<span class="muted">Escolhe pelo menos uma seleção.</span>'; return; }
+  const P = L.reduce((a, x) => a * x.c.p, 1), O = L.reduce((a, x) => a * (x.odd > 1 ? x.odd : 1), 1), ev = P * O - 1;
+  el.innerHTML = `<div class="n"><span>${L.length} seleç${L.length === 1 ? 'ão' : 'ões'} · Tó dá <b class="pos" style="font-size:1.1rem">${pct(P)}</b></span><b>@ ${O.toFixed(2)}</b></div>
+   <div class="small ${ev >= 0 ? 'pos' : 'muted'}">${ev >= 0 ? 'Com estas odds o boletim tem valor ' + sPct(ev) : 'Com estas odds paga ' + sPct(ev) + ' abaixo do justo (normal nas seguras)'}</div>
+   <div class="row" style="margin-top:8px"><div style="flex:1"><label class="f" style="margin-top:0">Valor (€)</label><input class="in" id="ssStake" inputmode="decimal" value="${String(SS.stake).replace('.', ',')}" oninput="SS.stake=num(this.value)"></div></div>
+   <div class="row" style="margin-top:8px"><button class="btn fill full" onclick="placeSlip()">${ic('check')} Registar múltipla</button><button class="btn go" onclick="shareSlip()" aria-label="Partilhar">${ic('share')}</button></div>`;
+}
+function placeSlip() {
+  const L = ssLegs(); const stake = num(($('#ssStake') || {}).value);
+  if (!L.length) return toast('Escolhe as seleções');
+  if (L.some(x => !(x.odd > 1))) return toast('Falta a odd de alguma seleção');
+  if (!(stake >= CFG.min)) return toast('A aposta mínima é ' + eur(CFG.min));
+  if (stake > accStats('tu').bal) return toast('Não tens saldo para isso');
+  const duel = 'd' + Date.now().toString(36), P = L.reduce((a, x) => a * x.c.p, 1);
+  newMulti('tu', L.map(x => safeLeg(x.c, x.odd)), stake, { duel, src: 'seguro', p: r2(P) });
+  // o Tó aposta o boletim que ele montou, com as mesmas odds que meteste
+  const mine = SS.C.filter(c => SS.auto.has(legKey(c)));
+  const same = mine.length === L.length && L.every(x => SS.auto.has(legKey(x.c)));
+  const tstake = Math.min(stake, accStats('to').bal);
+  let msg, mood = 'win';
+  if (mine.length && tstake >= CFG.min) {
+    newMulti('to', mine.map(c => safeLeg(c, SS.odd[legKey(c)] != null && SS.odd[legKey(c)] > 1 ? SS.odd[legKey(c)] : c.odd)), tstake, { duel, src: 'seguro', p: r2(mine.reduce((a, c) => a * c.p, 1)) });
+    msg = same ? 'É exatamente o meu boletim. Vou contigo!' : `Mexeste no boletim. Eu fico com o meu: <b>${mine.map(c => esc(c.lb)).join(' + ')}</b>.`;
+  } else { BETS.push({ id: 'tp' + Date.now().toString(36), acc: 'to', g: L[0].c.g.id, gl: '', gd: L[0].c.g.d, mk: 'pass', stake: 0, odd: 0, t: Date.now(), st: 'pass', ret: 0, lb: 'Passou', duel }); msg = 'Estou sem saldo… passo esta.'; mood = 'sad'; }
+  saveBets();
+  openSheet('Duelo marcado', `<div class="opinion"><div class="face">${toFace(mood)}</div><div>${msg}</div></div>
+    <div class="row" style="margin-top:14px"><button class="btn full" onclick="closeSheet();render()">Fechar</button><button class="btn fill full" onclick="closeSheet();go('duelo')">Ver duelo</button></div>`, true);
+  render();
+}
+function shareSlip() {
+  const L = ssLegs(); if (!L.length) return;
+  const P = L.reduce((a, x) => a * x.c.p, 1), O = L.reduce((a, x) => a * x.odd, 1);
+  const txt = `🏀 Boletim seguro do Mister Tó · ${new Date(L[0].c.g.d).toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' })}\n` + L.map((x, i) => `${i + 1}) ${x.c.lb} @ ${odd2(x.odd)} (${tAb(x.c.g.h)}–${tAb(x.c.g.a)}, ${hhmm(x.c.g.d)})`).join('\n') + `\nOdd total ${O.toFixed(2)} · o Tó dá ${pct(P)}\n(simulação, sem dinheiro real)`;
+  shareText(txt);
+}
+async function shareText(txt) {
+  try { if (navigator.share) { await navigator.share({ text: txt }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+  try { await navigator.clipboard.writeText(txt); toast('Copiado! Cola no WhatsApp ou no Facebook.'); } catch (e) { window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank'); }
+}
+
+/* ---------- cartão de jogo ---------- */
 function gameCard(g) {
-  const M = getModel(), P = predict(g), rh = M.rec[g.h] || {}, ra = M.rec[g.a] || {};
-  const o = g.o || {};
-  let mid, head = '';
-  if (g.s === 'pre') { mid = `<div class="s">${Math.round(P.ph)}–${Math.round(P.pa)}</div><div class="p">previsão</div>`; head = `<span>${hhmm(g.d)} · ${dayLbl(g.d)}</span>`; }
-  else if (g.s === 'in') { mid = `<div class="s">${g.hs}–${g.as}</div><div class="p">${esc(g.cl || 'a jogar')}</div>`; head = `<span class="live">AO VIVO</span>`; }
+  const M = getModel(), P = predict(g), rh = M.rec[g.h] || {}, ra = M.rec[g.a] || {}, o = g.o || {};
+  const th = teamRt(g.h), ta = teamRt(g.a);
+  let mid, head;
+  if (g.s === 'pre') { mid = `<div class="s">${Math.round(P.ph)}–${Math.round(P.pa)}</div><div class="p">previsão</div>`; head = `<span>${ic('clock')} ${hhmm(g.d)} · ${dayLbl(g.d)}</span>`; }
+  else if (g.s === 'in') { mid = `<div class="s">${g.hs}–${g.as}</div><div class="p">${esc(g.cl || 'a jogar')}</div>`; head = `<span class="live">Ao vivo</span>`; }
   else if (g.s === 'off') { mid = `<div class="s">—</div><div class="p">adiado</div>`; head = '<span>Adiado</span>'; }
-  else { mid = `<div class="s">${g.hs}–${g.as}</div><div class="p">final${g.per > 4 ? ' (prol.)' : ''}</div>`; head = `<span>Final · ${dayLbl(g.d)}</span>`; }
+  else { mid = `<div class="s">${g.hs}–${g.as}</div><div class="p">final${g.per > 4 ? ' · prol.' : ''}</div>`; head = `<span>Final · ${dayLbl(g.d)}</span>`; }
   const tags = [];
-  if (P.rh === 1) tags.push(`<span class="badge b-rd">😴 ${esc(tAb(g.h))}</span>`);
-  if (P.ra === 1) tags.push(`<span class="badge b-rd">😴 ${esc(tAb(g.a))}</span>`);
-  if (g.s === 'pre' && P.value) tags.push(`<span class="badge b-or">valor</span>`);
-  const mine = BETS.filter(b => b.g === g.id && b.acc === 'tu').length; if (mine) tags.push(`<span class="badge b-bl">⭐ ${mine}</span>`);
+  if (P.rh === 1) tags.push(`<span class="tg" style="--k:var(--c-red)">${esc(tAb(g.h))} cansado</span>`);
+  if (P.ra === 1) tags.push(`<span class="tg" style="--k:var(--c-red)">${esc(tAb(g.a))} cansado</span>`);
+  if (g.s === 'pre' && P.value) tags.push(`<span class="tg" style="--k:var(--c-orange)">valor</span>`);
+  const mine = BETS.filter(b => b.acc === 'tu' && (b.g === g.id || (b.legs && b.legs.some(l => l.g === g.id)))).length;
+  if (mine) tags.push(`<span class="tg" style="--k:var(--c-blue)">${ic('star')} ${mine}</span>`);
   let say;
   const fav = P.m >= 0 ? g.h : g.a, by = Math.abs(P.m);
-  if (g.s === 'post' && PREDS[g.id]) { const pm = PREDS[g.id].m, ok = Math.sign(pm) === Math.sign(g.hs - g.as); say = `${ok ? '✅' : '❌'} O Tó dava ${esc(tName(pm >= 0 ? g.h : g.a))} por ${Math.abs(pm).toFixed(1).replace('.', ',')}`; }
+  if (g.s === 'post' && PREDS[g.id]) { const pm = PREDS[g.id].m, ok = Math.sign(pm) === Math.sign(g.hs - g.as); say = `<span class="${ok ? 'pos' : 'neg'}">${ic(ok ? 'check' : 'x')}</span> O Tó dava ${esc(tName(pm >= 0 ? g.h : g.a))} por ${Math.abs(pm).toFixed(1).replace('.', ',')}`; }
   else say = `<b>Tó:</b> ${esc(tName(fav))} ${by < 1 ? 'muito equilibrado' : 'por ' + by.toFixed(1).replace('.', ',')} · ${Math.round(P.t)} pts`;
   const mk = [o.hl != null ? `Linha ${esc(tAb(g.h))} ${lineTxt(o.hl)}` : '', o.tl != null ? `Total ${String(o.tl).replace('.', ',')}` : '', o.hml ? `Odds ${odd2(o.hml)} / ${odd2(o.aml)}` : ''].filter(Boolean).join(' · ') || 'Sem odds da ESPN ainda';
-  return `<div class="gc" onclick="openGame('${g.id}')"><div class="hd">${head}<span class="r">${tags.join('')}</span></div>
-  <div class="tm"><div class="team">${logo(g.h)}<div style="min-width:0"><div class="nm${nmLg(g.h)}">${esc(tName(g.h))}</div><div class="rc">${rh.w || 0}-${rh.l || 0}<br>casa ${rh.hw || 0}-${rh.hl || 0}</div></div></div>
-  <div class="score">${mid}</div>
-  <div class="team r">${logo(g.a)}<div style="min-width:0"><div class="nm${nmLg(g.a)}">${esc(tName(g.a))}</div><div class="rc">${ra.w || 0}-${ra.l || 0}<br>fora ${ra.aw || 0}-${ra.al || 0}</div></div></div></div>
-  <div class="ft"><div class="pbar"><i style="width:${(P.pH * 100).toFixed(1)}%;background:#${esc((DB.teams[g.h] || {}).c || 'ff8a1f')}"></i><i style="flex:1;background:#${esc((DB.teams[g.a] || {}).c || '5aa9ff')}"></i></div>
+  const team = (id, r, t, side) => `<div class="team${side === 'a' ? ' r' : ''}">${logo(id)}<div style="min-width:0"><div class="nm${nmLg(id)}">${esc(tName(id))}</div><div class="rc"><span class="tg" style="--k:var(--teal);padding:0 4px">${t.ovr}</span> ${r.w || 0}-${r.l || 0}<br>${side === 'h' ? 'casa ' + (r.hw || 0) + '-' + (r.hl || 0) : 'fora ' + (r.aw || 0) + '-' + (r.al || 0)}</div></div></div>`;
+  return `<div class="gc" onclick="GT='ana';openGame('${g.id}')"><div class="stripe"><i style="background:${tCol(g.h)}"></i><i style="background:${tCol(g.a)}"></i></div><div class="hd">${head}<span class="r">${tags.join('')}</span></div>
+  <div class="tm">${team(g.h, rh, th, 'h')}<div class="score">${mid}</div>${team(g.a, ra, ta, 'a')}</div>
+  <div class="ft"><div class="bar two" style="height:6px"><i style="width:${(P.pH * 100).toFixed(1)}%;background:${tCol(g.h)}"></i><i style="width:${((1 - P.pH) * 100).toFixed(1)}%;background:${tCol(g.a)}"></i></div>
   <div class="say">${say}</div><div class="mk">${mk}</div></div></div>`;
 }
 
-/* ---------- FOLHA (modal) ---------- */
-function openSheet(title, html) { $('#sheetBox').innerHTML = `<div class="grab"></div><div class="sh"><h3>${title}</h3><button class="x" onclick="closeSheet()">✕</button></div>${html}`; $('#sheet').classList.add('on'); $('#sheetBox').scrollTop = 0; }
+/* ---------- FOLHA ---------- */
+function openSheet(title, html, short) { const b = $('#sheetBox'); b.className = 'box' + (short ? ' short' : ''); b.innerHTML = `<div class="sh"><h3>${title}</h3><button class="x" onclick="closeSheet()" aria-label="Fechar">${ic('x')}</button></div>${html}`; $('#sheet').classList.add('on'); b.scrollTop = 0; }
 function closeSheet() { $('#sheet').classList.remove('on'); }
-function askConfirm(msg, okTxt, fnName) { openSheet('Confirmar', `<p>${msg}</p><div class="row"><button class="btn full" onclick="closeSheet()">Cancelar</button><button class="btn red full" onclick="${fnName}">${okTxt}</button></div>`); }
+function askConfirm(msg, okTxt, fnName) { openSheet('Confirmar', `<p>${msg}</p><div class="row"><button class="btn full" onclick="closeSheet()">Cancelar</button><button class="btn red full" onclick="${fnName}">${okTxt}</button></div>`, true); }
 
-/* ---------- FICHA DO JOGO ---------- */
+/* ---------- FICHA DO JOGO (separadores) ---------- */
 function openGame(id) {
   const g = DB.games[id]; if (!g) return;
-  const M = getModel(), P = predict(g), rh = M.rec[g.h] || { last: [] }, ra = M.rec[g.a] || { last: [] };
-  const form = r => `<span class="form">${(r.last || []).slice(-5).map(x => `<i class="${x.w ? 'w' : 'l'}" title="${esc(x.s)}">${x.w ? 'V' : 'D'}</i>`).join('')}</span>`;
-  const net = t => { const v = M.net(t); return (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1).replace('.', ','); };
-  const spv = t => { const v = M.sp[t] || 0; return Math.abs(v) < 0.3 ? 'normal' : (v > 0 ? 'melhor em casa ' : 'melhor fora ') + Math.abs(v).toFixed(1).replace('.', ','); };
-  let h = `<div class="card" style="padding:10px"><div class="tm" style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px">
-   <div class="team">${logo(g.h, 44)}<div><div class="nm">${esc(tName(g.h))}</div><div class="rc">casa</div></div></div>
-   <div class="score">${g.s === 'pre' ? `<div class="s">${Math.round(P.ph)}–${Math.round(P.pa)}</div><div class="p">previsão do Tó</div>` : g.hs != null ? `<div class="s">${g.hs}–${g.as}</div><div class="p">${g.s === 'in' ? esc(g.cl) : 'final'}</div>` : '<div class="p">adiado</div>'}</div>
-   <div class="team r">${logo(g.a, 44)}<div><div class="nm">${esc(tName(g.a))}</div><div class="rc">fora</div></div></div></div>
-   <div class="small muted" style="text-align:center">${dayLbl(g.d)} às ${hhmm(g.d)} (hora de cá)</div>
-   <div class="pbar" style="margin-top:8px"><i style="width:${(P.pH * 100).toFixed(1)}%;background:var(--or2)"></i><i style="flex:1;background:var(--blue)"></i></div>
-   <div class="row small"><span>${esc(tAb(g.h))} ganha ${pct(P.pH)}</span><span style="margin-left:auto">${esc(tAb(g.a))} ganha ${pct(1 - P.pH)}</span></div></div>`;
-  // porquê
-  h += `<h2 class="sec">🧠 Porque pensa assim</h2><div class="card">` +
-    P.reasons.map(([t, v]) => `<div class="why"><span>${esc(t)}</span><b class="${v > 0.05 ? 'pos' : v < -0.05 ? 'neg' : 'muted'}">${Math.abs(v) < 0.05 ? '0' : (v > 0 ? '+' : '−') + Math.abs(v).toFixed(1).replace('.', ',')} pts</b></div>`).join('') +
-    `<div class="why"><span>= Vantagem só pelo modelo do Tó</span><b>${esc(tAb(P.mModel >= 0 ? g.h : g.a))} ${Math.abs(P.mModel).toFixed(1).replace('.', ',')}</b></div>` +
-    (P.W ? `<div class="why"><span>Linha da casa de apostas (peso ${pct(P.W)})</span><b>${esc(tAb(g.h))} ${lineTxt(g.o.hl)}</b></div>` : `<div class="why"><span>Sem linha da casa: o Tó vai só pelo modelo</span><b>—</b></div>`) +
-    (P.absAdj ? `<div class="why"><span>Ausências que marcaste (contam por inteiro)</span><b class="${P.absAdj > 0 ? 'pos' : 'neg'}">${P.absAdj > 0 ? '+' : '−'}${Math.abs(P.absAdj).toFixed(1).replace('.', ',')} pts</b></div>` : '') +
-    `<div class="why" style="border:0"><span><b>Conclusão:</b> ${esc(tName(P.m >= 0 ? g.h : g.a))} por ${Math.abs(P.m).toFixed(1).replace('.', ',')} · total ${P.t.toFixed(1).replace('.', ',')}</span></div>` +
-    (P.gpMin < 6 ? `<div class="small muted">Início de época: com poucos jogos o Tó confia mais na linha da casa.</div>` : '') + `</div>`;
-  // mercados
-  if (P.cands.length) {
-    h += `<h2 class="sec">💶 Mercados<span class="r">${esc((g.o && g.o.p) || '')}</span></h2><div class="card" style="padding:6px 8px"><table class="tbl"><tr><th>Aposta</th><th>Odd</th><th>Tó</th><th>Justa</th><th>Valor</th></tr>` +
-      P.cands.map(c => `<tr class="${P.best && c === P.best ? 'best' : ''}"><td>${esc(selLabel(g, c.mk, c.sel, c.line))}</td><td>${odd2(c.odd)}${c.der ? '*' : ''}${c.sus ? ' ⚠️' : ''}</td><td>${pct(c.p)}</td><td>${odd2(c.fair)}</td><td class="${c.ev > 0 ? 'pos' : 'neg'}">${sPct(c.ev)}</td></tr>`).join('') +
-      `</table>${P.cands.some(c => c.der) ? '<div class="small muted" style="margin:6px 2px">* odd estimada (a ESPN só deu a linha). Confirma na Betano.</div>' : ''}${P.cands.some(c => c.sus) ? '<div class="small muted" style="margin:6px 2px">⚠️ estas odds de vencedor não batem certo com o handicap da mesma casa: o Tó não aposta nelas.</div>' : ''}</div>`;
-  }
-  // equipas
-  h += `<h2 class="sec">📊 As equipas</h2><div class="card"><table class="tbl"><tr><th></th><th>${esc(tAb(g.h))}</th><th>${esc(tAb(g.a))}</th></tr>
-   <tr><td>Registo</td><td>${rh.w || 0}-${rh.l || 0}</td><td>${ra.w || 0}-${ra.l || 0}</td></tr>
-   <tr><td>Em casa / fora</td><td>casa ${rh.hw || 0}-${rh.hl || 0}</td><td>fora ${ra.aw || 0}-${ra.al || 0}</td></tr>
-   <tr><td>Diferença por jogo*</td><td>${net(g.h)}</td><td>${net(g.a)}</td></tr>
-   <tr><td>Fator casa/fora</td><td class="small">${spv(g.h)}</td><td class="small">${spv(g.a)}</td></tr>
-   <tr><td>Últimos 5</td><td>${form(rh)}</td><td>${form(ra)}</td></tr>
-   <tr><td>Descanso</td><td>${P.rh == null ? '—' : P.rh === 1 ? '<span class="neg">jogou ontem</span>' : P.rh + ' dias'}</td><td>${P.ra == null ? '—' : P.ra === 1 ? '<span class="neg">jogou ontem</span>' : P.ra + ' dias'}</td></tr></table>
-   <div class="small muted" style="margin-top:6px">* pontos marcados menos sofridos, corrigido pela força dos adversários.</div></div>`;
-  // ausências
+  const P = predict(g);
+  const favH = P.pH >= 0.5, conf = Math.round(Math.max(P.pH, 1 - P.pH) * 100);
+  let h = `<div class="pn hdr" style="margin-top:6px"><div class="tm" style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px">
+   <div class="team">${logo(g.h, 40)}<div style="min-width:0"><div class="nm${nmLg(g.h)}">${esc(tName(g.h))}</div><div class="rc">casa</div></div></div>
+   <div class="score">${g.s === 'pre' ? `<div class="s">${Math.round(P.ph)}–${Math.round(P.pa)}</div><div class="p">previsão</div>` : g.hs != null ? `<div class="s">${g.hs}–${g.as}</div><div class="p">${g.s === 'in' ? esc(g.cl) : 'final'}</div>` : '<div class="p">adiado</div>'}</div>
+   <div class="team r">${logo(g.a, 40)}<div style="min-width:0"><div class="nm${nmLg(g.a)}">${esc(tName(g.a))}</div><div class="rc">fora</div></div></div></div>
+   <div class="small muted" style="text-align:center;margin:4px 0 10px">${dayLbl(g.d)} às ${hhmm(g.d)} (hora de cá)</div>
+   <div class="big-ovr"><div class="t">Confiança do Tó<div class="small muted" style="text-transform:none;letter-spacing:0">${esc(tName(favH ? g.h : g.a))} ganha</div></div><div class="grow"></div><div class="n">${conf}</div></div><div class="ruler"></div></div>
+   <div class="tabs">${[['ana', 'Análise'], ['mk', 'Mercados'], ['eq', 'Equipas'], ['les', 'Lesões']].map(([k, t]) => `<button class="${GT === k ? 'on' : ''}" onclick="GT='${k}';openGame('${id}')">${t}</button>`).join('')}</div>`;
+  if (GT === 'ana') h += tabAnalise(g, P);
+  else if (GT === 'mk') h += tabMercados(g, P);
+  else if (GT === 'eq') h += tabEquipas(g, P);
+  else h += tabLesoes(g);
+  const mine = BETS.filter(b => b.st !== 'pass' && (b.g === g.id || (b.legs && b.legs.some(l => l.g === g.id))));
+  if (mine.length) h += catH('list', 'Apostas neste jogo', 'var(--c-blue)') + `<div class="pn" style="margin-top:0">${mine.map(betRow).join('')}</div>`;
+  if (g.s === 'pre' && new Date(g.d).getTime() > Date.now()) h += `<div class="cta"><button class="btn fill full" onclick="openBet('${g.id}')">${ic('target')} Apostar neste jogo</button></div>`;
+  openSheet(esc(tAb(g.h)) + ' <span class="muted">vs</span> ' + esc(tAb(g.a)), h);
+}
+function tabAnalise(g, P) {
+  const f1 = v => (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(1).replace('.', ',');
+  let h = catH('chart', 'Previsão', 'var(--c-blue)') +
+    attr(esc(tName(g.h)) + ' ganha', Math.round(P.pH * 100), tCol(g.h), pct(P.pH), 100) +
+    attr(esc(tName(g.a)) + ' ganha', Math.round((1 - P.pH) * 100), tCol(g.a), pct(1 - P.pH), 100) +
+    attr('Total de pontos previsto', clamp(P.t - 180, 0, 90), 'var(--c-yellow)', P.t.toFixed(1).replace('.', ','), 90);
+  h += catH('chip', 'Porque pensa assim', 'var(--c-purple)', 'pontos para ' + esc(tAb(g.h))) + `<div>` +
+    P.reasons.map(([t, v]) => `<div class="why"><span>${esc(t)}</span><b class="${v > 0.05 ? 'pos' : v < -0.05 ? 'neg' : 'muted'}">${Math.abs(v) < 0.05 ? '0' : f1(v)}</b></div>`).join('') +
+    `<div class="why"><span>= Só pelo modelo do Tó</span><b>${esc(tAb(P.mModel >= 0 ? g.h : g.a))} ${Math.abs(P.mModel).toFixed(1).replace('.', ',')}</b></div>` +
+    (P.W ? `<div class="why"><span>Linha da casa (peso ${pct(P.W)})</span><b>${esc(tAb(g.h))} ${lineTxt(g.o.hl)}</b></div>` : `<div class="why"><span>Sem linha da casa: vai só pelo modelo</span><b>—</b></div>`) +
+    (P.absAdj ? `<div class="why"><span>Ausências que marcaste</span><b class="${P.absAdj > 0 ? 'pos' : 'neg'}">${f1(P.absAdj)}</b></div>` : '') +
+    `<div class="why" style="border:0"><span><b style="font-size:1.05rem">Conclusão:</b> ${esc(tName(P.m >= 0 ? g.h : g.a))} por ${Math.abs(P.m).toFixed(1).replace('.', ',')} · total ${P.t.toFixed(1).replace('.', ',')}</span></div></div>` +
+    (P.gpMin < 6 ? `<div class="small muted">Início de época: com poucos jogos o Tó confia mais na linha da casa.</div>` : '');
   if (g.s === 'pre') {
     const ab = ABS[g.id] || { h: 0, a: 0 };
-    const abRow = side => `<div class="row wrapr" style="margin:6px 0"><b style="min-width:92px">${esc(tName(side === 'h' ? g.h : g.a))}</b><span class="badge ${ab[side] ? 'b-rd' : 'b-mu'}">${ab[side] ? '−' + String(ab[side]).replace('.', ',') + ' pts' : 'completo'}</span>
+    const row = side => `<div class="row w" style="margin:8px 0"><b style="min-width:96px;font-family:var(--cond);font-size:1rem">${esc(tName(side === 'h' ? g.h : g.a))}</b><span class="tg" style="--k:${ab[side] ? 'var(--c-red)' : 'var(--edge2)'}">${ab[side] ? '−' + String(ab[side]).replace('.', ',') + ' pts' : 'completo'}</span>
       <button class="btn sm" onclick="absAdd('${g.id}','${side}',4)">+ estrela fora</button><button class="btn sm" onclick="absAdd('${g.id}','${side}',1.5)">+ titular fora</button>${ab[side] ? `<button class="btn sm" onclick="absAdd('${g.id}','${side}',0)">limpar</button>` : ''}</div>`;
-    h += `<h2 class="sec">🩹 Ausências de última hora</h2><div class="card">${abRow('h')}${abRow('a')}<div class="small muted">Usa só se souberes de uma baixa que a casa de apostas ainda não meteu na linha. O Tó junta isto ao modelo dele.</div>
-      <button class="btn full" style="margin-top:8px" onclick="loadInjuries('${g.id}',this)">🌐 Ver lesões na ESPN</button><div id="inj"></div></div>`;
-    if (new Date(g.d).getTime() > Date.now()) h += `<button class="btn or full" style="margin:6px 0 4px" onclick="openBet('${g.id}')">🎯 Apostar neste jogo</button>`;
+    h += catH('bandage', 'Ausências de última hora', 'var(--c-red)') + row('h') + row('a') + `<div class="small muted">Marca só baixas que a casa de apostas ainda não meteu na linha. Contam por inteiro.</div>`;
   }
-  const mine = BETS.filter(b => b.g === g.id && b.st !== 'pass');
-  if (mine.length) h += `<h2 class="sec">🧾 Apostas neste jogo</h2><div class="card">${mine.map(betRow).join('')}</div>`;
-  openSheet(esc(tAb(g.h)) + ' – ' + esc(tAb(g.a)), h);
+  return h;
+}
+function tabMercados(g, P) {
+  if (!P.cands.length) return `<div class="pn small muted">A ESPN ainda não deu odds para este jogo. Costumam sair na véspera.</div>`;
+  return catH('coins', 'Mercados', 'var(--c-orange)', esc((g.o && g.o.p) || '')) + `<table class="tbl"><tr><th>Aposta</th><th>Odd</th><th>Tó</th><th>Justa</th><th>Valor</th></tr>` +
+    P.cands.map((c, i) => `<tr class="tap ${P.best && c === P.best ? 'best' : ''}" onclick="${g.s === 'pre' ? `openBet('${g.id}',${i})` : ''}"><td>${esc(selLabel(g, c.mk, c.sel, c.line))}</td><td>${odd2(c.odd)}${c.der ? '*' : ''}${c.sus ? ' ⚠' : ''}</td><td>${pct(c.p)}</td><td>${odd2(c.fair)}</td><td class="${c.ev > 0 ? 'pos' : 'neg'}">${sPct(c.ev)}</td></tr>`).join('') +
+    `</table><div class="small muted" style="margin:8px 2px">Toca numa linha para apostar nela.${P.cands.some(c => c.der) ? ' * odd estimada (a ESPN só deu a linha).' : ''}${P.cands.some(c => c.sus) ? ' ⚠ odds de vencedor que não batem certo com o handicap: o Tó não aposta nelas.' : ''}</div>`;
+}
+function tabEquipas(g, P) {
+  const M = getModel();
+  const card = (id, side) => {
+    const t = teamRt(id), r = M.rec[id] || { last: [] }, rest = side === 'h' ? P.rh : P.ra;
+    return `<div class="pn"><div class="row">${logo(id, 46)}<div style="flex:1"><div class="pn-h" style="margin:0">${esc(tName(id))}</div><div class="small muted">${side === 'h' ? 'Casa' : 'Fora'} · ${r.w || 0}-${r.l || 0} · ${rest == null ? '—' : rest === 1 ? '<span class="neg">jogou ontem</span>' : rest + ' dias de descanso'}</div></div><div class="ovr"><b>${t.ovr}</b><small>OVR</small></div></div>
+     <div class="div" style="margin-top:10px"></div>
+     ${attr('Ataque', t.atk, 'var(--c-blue)')}${attr('Defesa', t.def, 'var(--c-red)')}${attr('Forma (últ. 10)', t.form, 'var(--c-green)')}
+     ${attr('Em casa ' + (r.hw || 0) + '-' + (r.hl || 0), t.home, 'var(--c-orange)')}${attr('Fora ' + (r.aw || 0) + '-' + (r.al || 0), t.away, 'var(--c-purple)')}${attr('Ritmo (pontos por jogo)', t.pace, 'var(--c-yellow)')}
+     <div class="row small muted">Últimos 5 <span class="form">${(r.last || []).slice(-5).map(x => `<i class="${x.w ? 'w' : 'l'}" title="${esc(x.s)}">${x.w ? 'V' : 'D'}</i>`).join('')}</span><span style="margin-left:auto">fator casa/fora ${((M.sp[id] || 0) >= 0 ? '+' : '−') + Math.abs(M.sp[id] || 0).toFixed(1).replace('.', ',')}</span></div></div>`;
+  };
+  return card(g.h, 'h') + card(g.a, 'a') + `<div class="small muted">Notas de 0 a 99 calculadas pelo Tó com os resultados da época (corrigidas pela força dos adversários).</div>`;
+}
+function tabLesoes(g) {
+  return catH('bandage', 'Lesões na ESPN', 'var(--c-red)') + `<button class="btn go full" onclick="loadInjuries('${g.id}',this)">${ic('download')} Perguntar à ESPN</button><div id="inj"></div>`;
 }
 function absAdd(id, side, v) {
   const ab = ABS[id] || { h: 0, a: 0 };
@@ -839,33 +1118,31 @@ function absAdd(id, side, v) {
 }
 const ST_PT = s => /out/i.test(s) ? 'Fora' : /doubt/i.test(s) ? 'Muito duvidoso' : /question|day-to-day|gtd/i.test(s) ? 'Dúvida' : /prob/i.test(s) ? 'Provável' : s;
 async function loadInjuries(id, btn) {
-  const g = DB.games[id]; btn.disabled = true; btn.textContent = '⏳ A perguntar à ESPN…';
+  const g = DB.games[id]; btn.disabled = true; btn.textContent = 'A perguntar à ESPN…';
   try {
     const j = await getJSON(`${ESPN}/summary?event=${id}`);
-    const inj = j.injuries || [];
-    let h = '';
+    const inj = j.injuries || []; let h = '';
     [g.h, g.a].forEach(tid => {
       const blk = inj.find(x => x.team && String(x.team.id) === String(tid)) || inj.find(x => x.team && x.team.abbreviation === tAb(tid));
       const L = ((blk && blk.injuries) || []).map(x => ({ n: (x.athlete && (x.athlete.displayName || x.athlete.shortName)) || '?', pos: (x.athlete && x.athlete.position && x.athlete.position.abbreviation) || '', st: x.status || (x.type && x.type.description) || '', d: (x.details && (x.details.type || x.details.detail)) || '' }));
-      h += `<div style="margin-top:8px"><b>${esc(tName(tid))}</b>${L.length ? L.map(p => `<div class="why"><span>${esc(p.n)} <span class="muted small">${esc(p.pos)} ${esc(p.d)}</span></span><span class="badge ${/out/i.test(p.st) ? 'b-rd' : 'b-mu'}">${esc(ST_PT(p.st))}</span></div>`).join('') : '<div class="small muted">sem lesões na lista</div>'}</div>`;
+      h += `<div class="pn"><div class="row">${logo(tid, 32)}<b style="font:italic 900 1.05rem var(--cond);text-transform:uppercase">${esc(tName(tid))}</b></div>${L.length ? L.map(p => `<div class="why"><span>${esc(p.n)} <span class="muted small">${esc(p.pos)} ${esc(p.d)}</span></span><span class="tg" style="--k:${/out/i.test(p.st) ? 'var(--c-red)' : 'var(--c-yellow)'}">${esc(ST_PT(p.st))}</span></div>`).join('') : '<div class="small muted" style="margin-top:6px">sem lesões na lista</div>'}</div>`;
     });
     const pr = j.predictor;
-    if (pr && pr.homeTeam && pr.homeTeam.gameProjection != null) h += `<div class="small" style="margin-top:8px">📈 Previsão da ESPN (BPI): ${esc(tAb(g.h))} ${Math.round(+pr.homeTeam.gameProjection)}% · Tó ${pct(predict(g).pH)}</div>`;
+    if (pr && pr.homeTeam && pr.homeTeam.gameProjection != null) h += `<div class="pn small">${ic('chart')} Previsão da ESPN (BPI): ${esc(tAb(g.h))} ${Math.round(+pr.homeTeam.gameProjection)}% · Tó ${pct(predict(g).pH)}</div>`;
     $('#inj').innerHTML = h; btn.style.display = 'none';
-  } catch (e) { btn.disabled = false; btn.textContent = '🌐 Ver lesões na ESPN'; toast('❌ A ESPN não respondeu'); }
+  } catch (e) { btn.disabled = false; btn.innerHTML = ic('download') + ' Perguntar à ESPN'; toast('A ESPN não respondeu'); }
 }
 
 /* ---------- APOSTAR (e o Tó responde) ---------- */
 let BF = null;
-function openBet(id) {
+function openBet(id, ci) {
   const g = DB.games[id]; const P = predict(g); const o = g.o || {};
-  const c0 = P.best || { mk: o.hl != null ? 'sp' : 'ml', sel: 'h' };
+  const c0 = (ci != null && P.cands[ci]) || P.best || { mk: o.hl != null ? 'sp' : 'ml', sel: 'h' };
   BF = { id, mk: c0.mk, sel: c0.sel, stake: Math.max(CFG.min, 1) };
   presetBF(g, P); drawBet();
 }
 function presetBF(g, P) {
-  const c = P.cands.find(x => x.mk === BF.mk && x.sel === BF.sel);
-  const o = g.o || {};
+  const c = P.cands.find(x => x.mk === BF.mk && x.sel === BF.sel), o = g.o || {};
   if (BF.mk === 'sp') BF.line = c ? c.line : (BF.sel === 'h' ? (o.hl != null ? o.hl : -1.5) : (o.hl != null ? -o.hl : 1.5));
   else if (BF.mk === 'tot') BF.line = c ? c.line : (o.tl || Math.round(P.t) + 0.5);
   else BF.line = null;
@@ -876,40 +1153,35 @@ function drawBet() {
   const segMk = [['ml', 'Vencedor'], ['sp', 'Handicap'], ['tot', 'Total']].map(([k, t]) => `<button class="${BF.mk === k ? 'on' : ''}" onclick="BF.mk='${k}';BF.sel='${k === 'tot' ? 'o' : 'h'}';presetBF(DB.games[BF.id],predict(DB.games[BF.id]));drawBet()">${t}</button>`).join('');
   const sels = BF.mk === 'tot' ? [['o', 'Mais'], ['u', 'Menos']] : [['h', tName(g.h)], ['a', tName(g.a)]];
   const segSel = sels.map(([k, t]) => `<button class="${BF.sel === k ? 'on' : ''}" onclick="BF.sel='${k}';presetBF(DB.games[BF.id],predict(DB.games[BF.id]));drawBet()">${esc(t)}</button>`).join('');
-  const h = `<div class="small muted">${esc(gLabel(g))} · ${dayLbl(g.d)} ${hhmm(g.d)}</div>
+  openSheet('A tua aposta', `<div class="small muted">${esc(gLabel(g))} · ${dayLbl(g.d)} ${hhmm(g.d)}</div>
    <label class="f">Mercado</label><div class="seg">${segMk}</div>
    <label class="f">Escolha</label><div class="seg">${segSel}</div>
    ${BF.mk !== 'ml' ? `<label class="f">${BF.mk === 'sp' ? 'Handicap da tua escolha' : 'Linha de pontos'}</label><input class="in" id="bLine" inputmode="decimal" value="${BF.line == null ? '' : String(BF.line).replace('.', ',')}" oninput="betOpinion()">` : ''}
    <div class="row"><div style="flex:1"><label class="f">Odd (a da Betano)</label><input class="in" id="bOdd" inputmode="decimal" value="${BF.odd ? String(BF.odd).replace('.', ',') : ''}" oninput="betOpinion()"></div>
    <div style="flex:1"><label class="f">Valor (€)</label><input class="in" id="bStake" inputmode="decimal" value="${String(BF.stake).replace('.', ',')}" oninput="betOpinion()"></div></div>
    <div class="opinion" id="bOp"></div>
-   <button class="btn or full" style="margin-top:12px" id="bGo" onclick="placeBet()">✅ Registar a minha aposta</button>
-   <div class="small muted" style="margin-top:6px">Ao registares, o Tó escolhe a aposta dele neste jogo, com o mesmo valor. Ganha o duelo quem lucrar mais.</div>`;
-  openSheet('🎯 A tua aposta', h); betOpinion();
+   <button class="btn fill full" style="margin-top:12px" id="bGo" onclick="placeBet()">${ic('check')} Registar a minha aposta</button>
+   <div class="small muted" style="margin-top:6px">Ao registares, o Tó escolhe a aposta dele neste jogo, com o mesmo valor. Ganha o duelo quem lucrar mais.</div>`, true);
+  betOpinion();
 }
-function readBF() {
-  BF.line = BF.mk === 'ml' ? null : num($('#bLine') && $('#bLine').value);
-  BF.odd = num($('#bOdd').value); BF.stake = num($('#bStake').value);
-}
+function readBF() { BF.line = BF.mk === 'ml' ? null : num($('#bLine') && $('#bLine').value); BF.odd = num($('#bOdd').value); BF.stake = num($('#bStake').value); }
 function betOpinion() {
   readBF();
   const g = DB.games[BF.id], P = predict(g), box = $('#bOp');
   if (BF.mk !== 'ml' && BF.line == null) { box.className = 'opinion'; box.innerHTML = `<div class="face">${toFace('ok')}</div><div>Diz-me a linha.</div>`; return; }
-  const q = probs(P, BF.mk, BF.sel, BF.line), p = q.w;
-  const fair = fairOf(q);
+  const q = probs(P, BF.mk, BF.sel, BF.line), p = q.w, fair = fairOf(q);
   let cls = 'opinion', mood = 'ok', msg;
-  if (!(BF.odd > 1)) msg = `Para mim isto acontece ${pct(p)} das vezes${q.push > 0.005 ? ` (e ${pct(q.push)} é devolvida)` : ''}. Odd justa: <b>${odd2(fair)}</b>. Abaixo disso não vale.`;
+  if (!(BF.odd > 1)) msg = `Para mim isto acontece ${pct(p)} das vezes${q.push > 0.005 ? ` (e ${pct(q.push)} é devolvida)` : ''}. Odd justa: <b>${odd2(fair)}</b>.`;
   else {
     const ev = evOf(q, BF.odd);
     if (ev >= 0.05) { cls += ' good'; mood = 'win'; msg = `Boa! Dou-lhe ${pct(p)}. Com ${odd2(BF.odd)} tens <b>valor ${sPct(ev)}</b>.`; }
     else if (ev >= 0) msg = `Dou-lhe ${pct(p)}. Valor ${sPct(ev)}: aposta justa, sem grande vantagem.`;
-    else { cls += ' bad'; mood = 'sad'; msg = `Hum… dou-lhe ${pct(p)} (odd justa ${odd2(fair)}). Com ${odd2(BF.odd)} perdes <b>${sPct(ev)}</b> a longo prazo.`; }
+    else { cls += ' bad'; mood = 'sad'; msg = `Hum… dou-lhe ${pct(p)} (justa ${odd2(fair)}). Com ${odd2(BF.odd)} perdes <b>${sPct(ev)}</b> a longo prazo.`; }
   }
   const issues = [];
   if (!(BF.stake >= CFG.min)) issues.push(`a aposta mínima é ${eur(CFG.min)}`);
   if (BF.stake > accStats('tu').bal) issues.push('não tens saldo para isso');
-  if (BF.odd > 1 && BF.odd < 1.01) issues.push('odd estranha');
-  box.className = cls; box.innerHTML = `<div class="face">${toFace(mood)}</div><div>${msg}${issues.length ? `<div class="neg small" style="margin-top:4px">⚠️ ${issues.join(' · ')}</div>` : ''}</div>`;
+  box.className = cls; box.innerHTML = `<div class="face">${toFace(mood)}</div><div>${msg}${issues.length ? `<div class="neg small" style="margin-top:4px">${issues.join(' · ')}</div>` : ''}</div>`;
   $('#bGo').disabled = !(BF.odd > 1 && BF.stake >= CFG.min && BF.stake <= accStats('tu').bal && (BF.mk === 'ml' || BF.line != null));
 }
 function placeBet() {
@@ -917,13 +1189,10 @@ function placeBet() {
   const g = DB.games[BF.id], P = predict(g);
   if (new Date(g.d).getTime() < Date.now()) { toast('O jogo já começou'); return; }
   const c = { mk: BF.mk, sel: BF.sel, line: BF.line, odd: BF.odd };
-  const q = probs(P, c.mk, c.sel, c.line), p = q.w;
+  const q = probs(P, c.mk, c.sel, c.line), p = q.w, mineEv = evOf(q, c.odd);
   const duel = 'd' + Date.now().toString(36);
-  const mineEv = evOf(q, c.odd);
   newBet('tu', g, c, BF.stake, { p: r2(p), ev: r2(mineEv), duel });
-  // o Tó escolhe: a melhor aposta dele neste jogo (se tiver valor positivo; odd de vencedor só se for verdadeira)
   const opts = P.cands.filter(x => x.odd >= CFG.oddMin && x.odd <= CFG.oddMax && x.ev > 0 && !x.sus && !(x.mk === 'ml' && x.der)).sort((a, b) => b.ev - a.ev);
-  // a tua própria odd também conta: se a tua aposta for a melhor para ele, acompanha-te
   let tc = opts[0] || null;
   if (mineEv > 0 && (!tc || mineEv > tc.ev)) tc = Object.assign({}, c, { p, ev: mineEv });
   let msg, mood;
@@ -935,12 +1204,11 @@ function placeBet() {
     mood = 'win';
   } else {
     BETS.push({ id: 'tp' + Date.now().toString(36), acc: 'to', g: g.id, gl: gLabel(g), gd: g.d, mk: 'pass', stake: 0, odd: 0, t: Date.now(), st: 'pass', ret: 0, lb: 'Passou', duel });
-    msg = stake < CFG.min ? 'Estou sem saldo… passo esta.' : 'Neste jogo não vejo nada com valor. Passo — fico com o meu dinheiro.';
-    mood = 'sad';
+    msg = stake < CFG.min ? 'Estou sem saldo… passo esta.' : 'Neste jogo não vejo nada com valor. Passo — fico com o meu dinheiro.'; mood = 'sad';
   }
   saveBets();
-  openSheet('⚔️ Duelo marcado', `<div class="opinion"><div class="face">${toFace(mood)}</div><div>${msg}</div></div>
-    <div class="row" style="margin-top:12px"><button class="btn full" onclick="closeSheet();render()">Fechar</button><button class="btn or full" onclick="closeSheet();go('duelo')">Ver duelo</button></div>`);
+  openSheet('Duelo marcado', `<div class="opinion"><div class="face">${toFace(mood)}</div><div>${msg}</div></div>
+    <div class="row" style="margin-top:14px"><button class="btn full" onclick="closeSheet();render()">Fechar</button><button class="btn fill full" onclick="closeSheet();go('duelo')">Ver duelo</button></div>`, true);
   render();
 }
 function voidBet(id) {
@@ -964,95 +1232,103 @@ function viewDuelo() {
     const a = betPL(d.tu), b = betPL(d.to); you += a; him += b;
     if (Math.abs(a - b) < 0.005) e++; else if (a > b) w++; else l++;
   });
-  let h = `<div class="vs"><div><div class="me">⭐</div><div class="nm">Tu</div><div class="pl ${you >= 0 ? 'pos' : 'neg'}">${sEur(you)}</div></div>
+  const n = w + l + e;
+  let h = `<div class="pn hl" style="margin-top:14px">${pnH(`${ic('vs')} Duelo`, open + ' em jogo')}
+    <div class="vs"><div><div class="av me">${ic('star')}</div><div class="nm">Tu</div><div class="ovr" style="margin-top:6px"><b class="${you >= 0 ? 'pos' : 'neg'}">${sEur(you)}</b><small>LUCRO</small></div></div>
     <div class="mid">VS</div>
-    <div><div class="face">${toFace(him > you ? 'win' : him < you ? 'sad' : 'ok')}</div><div class="nm">Mister Tó</div><div class="pl ${him >= 0 ? 'pos' : 'neg'}">${sEur(him)}</div></div></div>
-    <div class="card" style="margin-top:10px;text-align:center"><b style="font:800 1.1rem var(--cond)">Duelos: ganhaste ${w} · perdeste ${l} · empate ${e}</b><div class="small muted">${open} em jogo · conta o lucro de cada um, com o mesmo valor apostado</div></div>`;
-  if (!D.length) return h + `<div class="card empty"><div class="face">${toFace('ok')}</div><b>Ainda não houve duelos.</b><div class="muted small" style="margin:6px 0 12px">Abre um jogo em «Hoje», regista a tua aposta e eu respondo com a minha.</div><button class="btn or" onclick="go('hoje')">🏀 Ver jogos</button></div>`;
-  h += `<h2 class="sec">⚔️ Duelos</h2>`;
+    <div><div class="av">${toFace(him > you ? 'win' : him < you ? 'sad' : 'ok')}</div><div class="nm">Mister Tó</div><div class="ovr" style="margin-top:6px"><b class="${him >= 0 ? 'pos' : 'neg'}">${sEur(him)}</b><small>LUCRO</small></div></div></div>
+    <div style="margin-top:14px">${attr('Duelos ganhos por ti', n ? Math.round(w / n * 100) : 0, 'var(--c-blue)', `${w} de ${n}`, 100)}${attr('Duelos ganhos pelo Tó', n ? Math.round(l / n * 100) : 0, 'var(--c-orange)', `${l} de ${n}`, 100)}${e ? `<div class="small muted">${e} empate${e > 1 ? 's' : ''} (mesma aposta)</div>` : ''}</div></div>`;
+  if (!D.length) return h + `<div class="pn empty"><div class="face">${toFace('ok')}</div><b>Ainda não houve duelos.</b><div class="muted small" style="margin:6px 0 14px">Abre um jogo em «Hoje» ou regista o Boletim seguro. Eu respondo com a minha aposta.</div><button class="btn fill" onclick="go('hoje')">${ic('ball')} Ver jogos</button></div>`;
+  h += catH('list', 'Duelos', 'var(--c-blue)');
   h += D.map(d => {
-    const g = DB.games[d.tu.g] || {};
-    const res = g.s === 'post' && g.hs != null ? `${g.hs}–${g.as}` : g.s === 'in' ? 'a decorrer' : hhmm(d.tu.gd);
+    const g = d.tu.mk === 'multi' ? null : DB.games[d.tu.g] || {};
+    const res = !g ? `${d.tu.legs.length} jogos` : g.s === 'post' && g.hs != null ? `${g.hs}–${g.as}` : g.s === 'in' ? 'a decorrer' : hhmm(d.tu.gd);
     const a = betPL(d.tu), b = betPL(d.to), closed = d.tu.st !== 'open' && (!d.to || d.to.st !== 'open');
-    const cell = (x, who, win) => `<div class="${closed && win ? 'win' : ''}"><div class="h">${who}</div>${x && x.st !== 'pass' ? `<b>${esc(x.lb)}</b><div class="small muted">@ ${odd2(x.odd)} · ${eur(x.stake)}</div><div class="small">${stTag(x)}</div>` : '<b class="muted">Passou</b>'}</div>`;
-    return `<div class="card" style="padding:10px"><div class="row small"><b>${esc(d.tu.gl)}</b><span class="muted" style="margin-left:auto">${res}</span></div>
-     <div class="duel">${cell(d.tu, '⭐ Tu', a > b)}${cell(d.to, '🏀 Tó', b > a)}</div></div>`;
+    const cell = (x, who, k, win) => `<div class="${closed && win ? 'win' : ''}" style="--k:${k}"><div class="h">${who}</div>${x && x.st !== 'pass' ? `<b>${esc(x.lb)}</b>${x.legs ? `<div class="small muted">${x.legs.map(l => esc(l.lb)).join(' + ')}</div>` : ''}<div class="small muted">@ ${odd2(x.odd)} · ${eur(x.stake)}</div><div class="small" style="margin-top:3px">${stTag(x)}</div>` : '<b class="muted">Passou</b>'}</div>`;
+    return `<div class="pn" style="padding:10px 12px"><div class="row small"><b style="font:italic 800 1rem var(--cond)">${esc(d.tu.src === 'seguro' ? 'Boletim seguro' : d.tu.gl)}</b><span class="muted" style="margin-left:auto">${res}</span></div>
+     <div class="duel">${cell(d.tu, 'Tu', 'var(--c-blue)', a > b)}${cell(d.to, 'Mister Tó', 'var(--c-orange)', b > a)}</div></div>`;
   }).join('');
   return h;
 }
 function stTag(b) {
-  if (b.st === 'open') return '<span class="badge b-bl">em jogo</span>';
-  if (b.st === 'won') return `<span class="badge b-gr">ganhou ${sEur(b.ret - b.stake)}</span>`;
-  if (b.st === 'lost') return `<span class="badge b-rd">perdeu ${sEur(-b.stake)}</span>`;
-  if (b.st === 'push') return '<span class="badge b-mu">devolvida</span>';
-  if (b.st === 'void') return '<span class="badge b-mu">anulada</span>';
-  return '<span class="badge b-mu">passou</span>';
+  if (b.st === 'open') return '<span class="tg" style="--k:var(--c-blue)">em jogo</span>';
+  if (b.st === 'won') return `<span class="tg" style="--k:var(--pos)">ganhou ${sEur(b.ret - b.stake)}</span>`;
+  if (b.st === 'lost') return `<span class="tg" style="--k:var(--neg)">perdeu ${sEur(-b.stake)}</span>`;
+  if (b.st === 'push') return '<span class="tg">devolvida</span>';
+  if (b.st === 'void') return '<span class="tg">anulada</span>';
+  return '<span class="tg">passou</span>';
 }
 
 /* ---------- CONTAS ---------- */
 function betRow(b) {
-  return `<div class="bet"><div class="who">${ACC[b.acc].ic}</div><div class="m"><div class="t">${esc(b.lb)} <span class="muted" style="font-weight:600">@ ${odd2(b.odd)}</span></div>
-   <div class="g">${esc(b.gl)} · ${dayLbl(b.gd)} ${hhmm(b.gd)}${b.res ? ' · ' + esc(b.res) : ''}${b.ev != null ? ` · valor Tó ${sPct(b.ev)}` : ''}</div>
-   <div style="margin-top:3px">${stTag(b)}${b.acc === 'tu' && b.st === 'open' ? ` <button class="btn sm" style="min-height:26px;padding:2px 8px" onclick="askConfirm('Anular esta aposta? (se não chegaste a jogá-la na Betano). O duelo do Tó também é anulado.','Anular',&quot;voidBet('${b.id}')&quot;)">anular</button>` : ''}</div></div>
+  const legs = b.legs ? `<div class="legs">${b.legs.map(l => `${l.r === 'won' ? '<span class="pos">✓</span>' : l.r === 'lost' ? '<span class="neg">✗</span>' : '•'} ${esc(l.lb)} @ ${odd2(l.odd)} <span class="muted">(${esc(tAb((DB.games[l.g] || {}).h))}–${esc(tAb((DB.games[l.g] || {}).a))}${l.res ? ' ' + esc(l.res) : ''})</span>`).join('<br>')}</div>` : '';
+  return `<div class="bet"><div class="who" style="--k:${ACC[b.acc].c}">${ic(ACC[b.acc].ic)}</div><div class="m"><div class="t">${esc(b.lb)} <span class="muted" style="font-weight:600">@ ${odd2(b.odd)}</span></div>
+   <div class="g">${b.legs ? 'Boletim' : esc(b.gl)} · ${dayLbl(b.gd)} ${hhmm(b.gd)}${b.res ? ' · ' + esc(b.res) : ''}${b.ev != null ? ` · valor Tó ${sPct(b.ev)}` : b.p != null && b.legs ? ` · Tó ${pct(b.p)}` : ''}</div>${legs}
+   <div style="margin-top:4px">${stTag(b)}${b.acc === 'tu' && b.st === 'open' ? ` <button class="btn sm" style="min-height:26px;padding:2px 8px" onclick="askConfirm('Anular esta aposta? (se não chegaste a jogá-la na Betano). O duelo do Tó também é anulado.','Anular',&quot;voidBet('${b.id}')&quot;)">anular</button>` : ''}</div></div>
    <div class="v">${eur(b.stake)}<small>${b.st === 'open' ? 'pode dar ' + eur(b.stake * b.odd) : ''}</small></div></div>`;
 }
 function viewContas() {
-  const tile = k => { const s = accStats(k); return `<div class="acct ${ACCF === k ? 'on' : ''}" onclick="ACCF=ACCF==='${k}'?'all':'${k}';render()"><div class="ic">${ACC[k].ic}</div><div class="n">${ACC[k].n}</div><div class="v">${eur(s.bal)}</div>
-    <div class="d">em jogo ${eur(s.open)}<br><span class="${s.profit >= 0 ? 'pos' : 'neg'}">${sEur(s.profit)}</span> · ROI ${sPct(s.roi)}<br>${s.w}✓ ${s.l}✗</div></div>`; };
+  const tile = k => { const s = accStats(k); return `<div class="acct ${ACCF === k ? 'on' : ''}" style="--k:${ACC[k].c}" onclick="ACCF=ACCF==='${k}'?'all':'${k}';render()">${ic(ACC[k].ic)}<div class="n">${ACC[k].n}</div><div class="v">${eur(s.bal)}</div><div class="d"><span class="${s.profit >= 0 ? 'pos' : 'neg'}">${sEur(s.profit)}</span></div></div>`; };
+  let h = `<div class="accs">${tile('tu')}${tile('to')}${tile('pi')}</div>`;
+  if (ACCF !== 'all') {
+    const s = accStats(ACCF), n = s.w + s.l;
+    h += `<div class="pn hl">${pnH(`${ic(ACC[ACCF].ic)} ${ACC[ACCF].n}`, 'toca outra vez para ver todas')}
+      <div class="big-ovr"><div class="t">Saldo<div class="small muted" style="text-transform:none;letter-spacing:0">começou com ${eur(s.start)}</div></div><div class="grow"></div><div class="n" style="font-size:2rem">${eur(s.bal)}</div></div><div class="ruler"></div>
+      <div style="margin-top:12px">${attr('Em jogo', Math.min(s.open, s.start), 'var(--c-orange)', eur(s.open), s.start || 1)}${attr('Taxa de acerto', n ? Math.round(s.w / n * 100) : 0, 'var(--c-green)', n ? `${pct(s.w / n)} (${s.w}/${n})` : '—', 100)}${attr('ROI (lucro por € apostado)', clamp(50 + s.roi * 100, 0, 100), s.roi >= 0 ? 'var(--c-green)' : 'var(--c-red)', sPct(s.roi), 100)}</div></div>`;
+  } else h += `<div class="small muted" style="margin:8px 2px">Toca numa conta para ver os números dela.</div>`;
+  h += `<div class="row w" style="margin-top:8px"><button class="btn sm" onclick="exportCSV()">${ic('download')} Exportar</button><button class="btn sm" onclick="printBets()">${ic('print')} Imprimir</button><button class="btn sm" onclick="openDeposit()">${ic('coins')} Recarregar</button></div>`;
   const L = BETS.filter(b => b.st !== 'pass' && (ACCF === 'all' || b.acc === ACCF)).sort((a, b) => b.t - a.t);
   const open = L.filter(b => b.st === 'open'), done = L.filter(b => b.st !== 'open');
-  let h = `<div class="acc">${tile('tu')}${tile('to')}${tile('pi')}</div>
-   <div class="small muted" style="margin:6px 2px">${ACCF === 'all' ? 'Toca numa conta para ver só as apostas dela.' : 'A mostrar só: ' + ACC[ACCF].n + ' (toca outra vez para ver todas)'}</div>
-   <div class="row wrapr" style="margin-top:6px"><button class="btn sm" onclick="exportCSV()">⬇️ Exportar</button><button class="btn sm" onclick="printBets()">🖨️ Imprimir</button><button class="btn sm" onclick="openDeposit()">💰 Recarregar</button></div>`;
-  h += `<h2 class="sec">🔥 Em jogo<span class="r">${open.length} aposta${open.length === 1 ? '' : 's'} · ${eur(open.reduce((s, b) => s + b.stake, 0))}</span></h2>`;
-  h += open.length ? `<div class="card open-box">${open.map(betRow).join('')}</div>` : `<div class="card small muted">Nada em jogo.</div>`;
-  h += `<h2 class="sec">📜 Histórico</h2>`;
-  h += done.length ? `<div class="card">${done.slice(0, 150).map(betRow).join('')}</div>` : `<div class="card small muted">Ainda sem apostas fechadas.</div>`;
+  h += catH('fire', 'Em jogo', 'var(--c-orange)', `${open.length} · ${eur(open.reduce((s, b) => s + b.stake, 0))}`);
+  h += open.length ? `<div class="pn open-box" style="margin-top:0">${open.map(betRow).join('')}</div>` : `<div class="pn small muted" style="margin-top:0">Nada em jogo.</div>`;
+  h += catH('list', 'Histórico', 'var(--c-blue)');
+  h += done.length ? `<div class="pn" style="margin-top:0">${done.slice(0, 150).map(betRow).join('')}</div>` : `<div class="pn small muted" style="margin-top:0">Ainda sem apostas fechadas.</div>`;
   return h;
 }
 function openDeposit() {
-  openSheet('💰 Recarregar banca', `<label class="f">Conta</label><select class="in" id="dAcc"><option value="tu">⭐ Tu</option><option value="to">🏀 Mister Tó</option><option value="pi">🤖 Piloto</option></select>
+  openSheet('Recarregar banca', `<label class="f">Conta</label><select class="in" id="dAcc"><option value="tu">Tu</option><option value="to">Mister Tó</option><option value="pi">Piloto</option></select>
    <label class="f">Valor a juntar (€)</label><input class="in" id="dVal" inputmode="decimal" value="50">
    <div class="small muted" style="margin-top:6px">Fica registado à parte: o lucro e o ROI continuam certos.</div>
-   <button class="btn or full" style="margin-top:12px" onclick="doDeposit()">Juntar</button>`);
+   <button class="btn fill full" style="margin-top:12px" onclick="doDeposit()">Juntar</button>`, true);
 }
 function doDeposit() { const v = num($('#dVal').value); if (!(v > 0)) return toast('Valor inválido'); DEPOS.push({ acc: $('#dAcc').value, v: r2(v), t: Date.now() }); LS.set('depos', DEPOS); closeSheet(); toast('Banca recarregada'); render(); }
 function betsForOut() { return BETS.filter(b => b.st !== 'pass' && (ACCF === 'all' || b.acc === ACCF)).sort((a, b) => a.t - b.t); }
 const ST_TXT = { open: 'em jogo', won: 'ganhou', lost: 'perdeu', push: 'devolvida', void: 'anulada' };
+const betDesc = b => b.legs ? b.legs.map(l => l.lb + ' @' + odd2(l.odd)).join(' + ') : b.lb;
 function exportCSV() {
   const f = v => String(v == null ? '' : v).replace('.', ',');
   const rows = [['conta', 'registada', 'jogo', 'data_jogo', 'mercado', 'aposta', 'linha', 'odd', 'valor', 'estado', 'retorno', 'lucro', 'prob_to', 'valor_to', 'resultado']];
-  betsForOut().forEach(b => rows.push([ACC[b.acc].n, new Date(b.t).toLocaleString('pt-PT'), b.gl, new Date(b.gd).toLocaleString('pt-PT'), mkName(b.mk), b.lb, f(b.line), f(b.odd), f(b.stake), ST_TXT[b.st] || b.st, b.st === 'open' ? '' : f(b.ret), b.st === 'open' ? '' : f(r2((b.ret || 0) - b.stake)), b.p != null ? f(b.p) : '', b.ev != null ? f(b.ev) : '', b.res || '']));
+  betsForOut().forEach(b => rows.push([ACC[b.acc].n, new Date(b.t).toLocaleString('pt-PT'), b.legs ? 'Boletim ' + b.legs.length + ' jogos' : b.gl, new Date(b.gd).toLocaleString('pt-PT'), b.legs ? 'Múltipla' : mkName(b.mk), betDesc(b), f(b.line), f(b.odd), f(b.stake), ST_TXT[b.st] || b.st, b.st === 'open' ? '' : f(b.ret), b.st === 'open' ? '' : f(r2((b.ret || 0) - b.stake)), b.p != null ? f(b.p) : '', b.ev != null ? f(b.ev) : '', b.res || '']));
   const csv = '﻿' + rows.map(r => r.map(x => /[;"\n]/.test(String(x)) ? '"' + String(x).replace(/"/g, '""') + '"' : x).join(';')).join('\n');
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
   a.download = 'mister-to-apostas-' + todayET() + '.csv'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
-  toast('⬇️ Ficheiro gerado (abre no Excel)');
+  toast('Ficheiro gerado (abre no Excel)');
 }
 function printBets() {
   const L = betsForOut(); const accs = ACCF === 'all' ? ['tu', 'to', 'pi'] : [ACCF];
   $('#print').innerHTML = `<h2>Mister Tó · NBA — ${ACCF === 'all' ? 'todas as contas' : ACC[ACCF].n}</h2><p>${new Date().toLocaleString('pt-PT')}</p>
    <p>${accs.map(k => { const s = accStats(k); return `<b>${ACC[k].n}</b>: saldo ${eur(s.bal)} · em jogo ${eur(s.open)} · lucro ${sEur(s.profit)} · ROI ${sPct(s.roi)}`; }).join('<br>')}</p>
-   <table><tr><th>Conta</th><th>Jogo</th><th>Aposta</th><th>Odd</th><th>Valor</th><th>Estado</th><th>Lucro</th></tr>${L.map(b => `<tr><td>${ACC[b.acc].n}</td><td>${esc(b.gl)}<br>${dayLbl(b.gd)}</td><td>${esc(b.lb)}</td><td>${odd2(b.odd)}</td><td>${eur(b.stake)}</td><td>${ST_TXT[b.st] || b.st}</td><td>${b.st === 'open' ? '' : sEur((b.ret || 0) - b.stake)}</td></tr>`).join('')}</table>`;
+   <table><tr><th>Conta</th><th>Jogo</th><th>Aposta</th><th>Odd</th><th>Valor</th><th>Estado</th><th>Lucro</th></tr>${L.map(b => `<tr><td>${ACC[b.acc].n}</td><td>${esc(b.legs ? 'Boletim' : b.gl)}<br>${dayLbl(b.gd)}</td><td>${esc(betDesc(b))}</td><td>${odd2(b.odd)}</td><td>${eur(b.stake)}</td><td>${ST_TXT[b.st] || b.st}</td><td>${b.st === 'open' ? '' : sEur((b.ret || 0) - b.stake)}</td></tr>`).join('')}</table>`;
   window.print();
 }
 
 /* ---------- MAIS ---------- */
 function viewMais() {
-  const T = [['🏆', 'Classificação', 'openStand()'], ['📒', 'Diário do Tó', 'openDiary()'], ['🧠', 'Como pensa o Tó', 'openHow()'], ['⚙️', 'Definições', 'openCfg()'], ['💾', 'Cópia de segurança', 'openBackup()'], ['🩺', 'Testar ligação', 'openNet()'], ['📲', 'Instalar app', 'openInstall()']];
-  const T2 = isStandalone() ? T.filter(x => x[2] !== 'openInstall()') : T;
-  return `<div class="tiles">${T2.map(([i, l, f]) => `<div class="tile" onclick="${f}"><div class="ic">${i}</div><div class="lb">${l}</div></div>`).join('')}</div>
-   <div class="card small muted" style="margin-top:14px;text-align:center">Mister Tó v${APP_VER} · dados da ESPN · simulação, sem dinheiro real<br>© 2026 Júlio Melo</div>`;
+  const T = [['trophy', 'Classificação', 'openStand()', 'var(--c-yellow)'], ['book', 'Diário do Tó', 'openDiary()', 'var(--c-green)'], ['chip', 'Como pensa o Tó', 'openHow()', 'var(--c-purple)'], ['gear', 'Definições', 'openCfg()', 'var(--c-blue)'], ['save', 'Cópia de segurança', 'openBackup()', 'var(--c-orange)'], ['pulse', 'Testar ligação', 'openNet()', 'var(--c-red)']];
+  if (!isStandalone()) T.push(['phone', 'Instalar app', 'openInstall()', 'var(--teal)']);
+  return `<div class="tiles">${T.map(([i, l, f, k]) => `<div class="tile" style="--k:${k}" onclick="${f}">${ic(i)}<b>${l}</b></div>`).join('')}</div>
+   <div class="pn small muted" style="text-align:center">Mister Tó v${APP_VER} · dados da ESPN · simulação, sem dinheiro real<br>© 2026 Júlio Melo</div>`;
 }
 let CONFV = 'E';
 function openStand() {
   const M = getModel(); const set = CONFV === 'E' ? EAST : WEST;
-  const ts = Object.values(DB.teams).filter(t => set.includes(t.ab)).map(t => ({ t, r: M.rec[t.id] || { w: 0, l: 0, hw: 0, hl: 0, aw: 0, al: 0, last: [] } }))
+  const ts = Object.values(DB.teams).filter(t => set.includes(t.ab)).map(t => ({ t, r: M.rec[t.id] || { w: 0, l: 0, hw: 0, hl: 0, aw: 0, al: 0, last: [] }, o: teamRt(t.id).ovr }))
     .sort((a, b) => (b.r.w / Math.max(1, b.r.w + b.r.l)) - (a.r.w / Math.max(1, a.r.w + a.r.l)) || M.net(b.t.id) - M.net(a.t.id));
-  const h = `<div class="seg"><button class="${CONFV === 'E' ? 'on' : ''}" onclick="CONFV='E';openStand()">Este</button><button class="${CONFV === 'W' ? 'on' : ''}" onclick="CONFV='W';openStand()">Oeste</button></div>
-   <div class="card" style="padding:6px;margin-top:10px"><table class="tbl stand"><tr><th>#</th><th>Equipa</th><th>V-D</th><th>Casa</th><th>Fora</th><th>Dif.</th><th>Últ. 10</th></tr>
-   ${ts.map((x, i) => `<tr><td>${i + 1}</td><td style="text-align:left"><b>${esc(x.t.nm)}</b></td><td>${x.r.w}-${x.r.l}</td><td>${x.r.hw}-${x.r.hl}</td><td>${x.r.aw}-${x.r.al}</td><td class="${M.net(x.t.id) >= 0 ? 'pos' : 'neg'}">${M.net(x.t.id).toFixed(1).replace('.', ',')}</td><td>${(x.r.last || []).slice(-10).map(z => `<span class="dot" style="background:${z.w ? 'var(--green)' : 'var(--red)'}"></span>`).join('')}</td></tr>`).join('')}
-   </table></div><div class="small muted">Feita pelo Tó com os resultados guardados. «Dif.» = diferença de pontos por jogo, corrigida pelos adversários.</div>`;
-  openSheet('🏆 Classificação', ts.length ? h : '<p class="muted">Carrega primeiro em 🔄.</p>');
+  const h = `<div class="tabs" style="margin-top:4px"><button class="${CONFV === 'E' ? 'on' : ''}" onclick="CONFV='E';openStand()">Este</button><button class="${CONFV === 'W' ? 'on' : ''}" onclick="CONFV='W';openStand()">Oeste</button></div>
+   <table class="tbl" style="margin-top:6px"><tr><th>#</th><th>Equipa</th><th>OVR</th><th>V-D</th><th>Casa</th><th>Fora</th><th>Últ. 10</th></tr>
+   ${ts.map((x, i) => `<tr><td>${i + 1}</td><td style="text-align:left"><b>${esc(x.t.nm)}</b></td><td><span class="tg" style="--k:var(--teal)">${x.o}</span></td><td>${x.r.w}-${x.r.l}</td><td>${x.r.hw}-${x.r.hl}</td><td>${x.r.aw}-${x.r.al}</td><td style="white-space:nowrap">${(x.r.last || []).slice(-10).map(z => `<span class="dot" style="background:${z.w ? 'var(--pos)' : 'var(--neg)'}"></span>`).join('')}</td></tr>`).join('')}
+   </table><div class="small muted" style="margin-top:6px">Feita pelo Tó com os resultados guardados. OVR = nota geral da equipa (0–99).</div>`;
+  openSheet('Classificação', ts.length ? h : '<p class="muted">Toca primeiro em ↻.</p>');
 }
 function openDiary() {
   const fin = Object.values(DB.games).filter(g => g.s === 'post' && PREDS[g.id] && g.hs != null);
@@ -1066,44 +1342,43 @@ function openDiary() {
     if (p.pk) { const o = outcome({ mk: p.pk.mk, sel: p.pk.sel, line: p.pk.line }, g); if (o === 'won' || o === 'lost') { vk++; if (o === 'won') vw++; } }
   });
   const f1 = x => x.toFixed(1).replace('.', ',');
-  const pm = (k, nn) => nn ? `${pct(k / nn)} <span class="muted small">±${Math.round(196 * Math.sqrt((k / nn) * (1 - k / nn) / nn))} (${nn})</span>` : '—';
-  const C = getModel().cal;
-  const pi = accStats('pi');
-  const h = n ? `<div class="card"><div class="why"><span>Jogos previstos e já acabados</span><b>${n}</b></div>
-    <div class="why"><span>Acertou no vencedor</span><b>${pct(win / n)}</b></div>
-    <div class="why"><span>Erro médio na diferença (Tó final)</span><b>${f1(eT / n)} pts</b></div>
-    <div class="why"><span>Erro médio só do modelo (sem mercado)</span><b>${f1(eMod / n)} pts</b></div>
-    ${nM ? `<div class="why"><span>Erro médio da casa de apostas</span><b>${f1(eM / nM)} pts</b></div>` : ''}
-    ${spN ? `<div class="why"><span>Lado certo no handicap</span><b>${pm(spW, spN)}</b></div>` : ''}
-    ${toN ? `<div class="why"><span>Lado certo no total</span><b>${pm(toW, toN)}</b></div>` : ''}
-    <div class="why"><span>Peso que o Tó dá à casa (aprendido)</span><b>diferença ${pct(C.m.w)} · total ${pct(C.t.w)} <span class="muted small">(${C.m.n} jogos)</span></b></div>
-    ${vk ? `<div class="why"><span>Apostas com valor que acertou</span><b>${vw}/${vk} (${pct(vw / vk)})</b></div>` : ''}
-    <div class="why" style="border:0"><span>Piloto automático</span><b class="${pi.profit >= 0 ? 'pos' : 'neg'}">${sEur(pi.profit)} · ROI ${sPct(pi.roi)}</b></div></div>
-    <div class="card small muted">Como ler: para bater as casas no handicap/total é preciso acertar mais de 52,4% (odd 1,91). O «±» é a margem de sorte: se 52,4% estiver dentro dela, ainda não se sabe se o Tó é bom ou teve sorte. Se o modelo errar mais do que a casa, o Tó baixa sozinho o peso que dá a si próprio.</div>`
-    : `<div class="card empty"><div class="face">${toFace('ok')}</div>O diário enche-se sozinho: o Tó guarda a previsão de cada jogo antes de começar e compara com o resultado. Vai carregando em 🔄 todos os dias.</div>`;
-  openSheet('📒 Diário do Tó', h);
+  const pm = (k, nn) => nn ? `${pct(k / nn)} <span class="muted small">±${Math.round(196 * Math.sqrt((k / nn) * (1 - k / nn) / nn))}</span>` : '—';
+  const C = getModel().cal, pi = accStats('pi'), ss = safeStats();
+  const h = n ? catH('target', 'Acertos', 'var(--c-green)', n + ' jogos') +
+    attr('Acertou no vencedor', Math.round(win / n * 100), 'var(--c-green)', pct(win / n), 100) +
+    (spN ? attr('Lado certo no handicap', Math.round(spW / spN * 100), 'var(--c-blue)', pm(spW, spN), 100) : '') +
+    (toN ? attr('Lado certo no total', Math.round(toW / toN * 100), 'var(--c-yellow)', pm(toW, toN), 100) : '') +
+    (vk ? attr('Apostas com valor que acertou', Math.round(vw / vk * 100), 'var(--c-orange)', `${vw}/${vk}`, 100) : '') +
+    (ss ? attr('Boletim seguro (seleções)', Math.round(ss.w / ss.n * 100), 'var(--teal)', `${ss.w}/${ss.n} · prometia ${pct(ss.p)}`, 100) : '') +
+    catH('chart', 'Erro médio (pontos)', 'var(--c-purple)') +
+    `<div class="why"><span>Tó final</span><b>${f1(eT / n)}</b></div><div class="why"><span>Só o modelo do Tó</span><b>${f1(eMod / n)}</b></div>${nM ? `<div class="why"><span>Casa de apostas</span><b>${f1(eM / nM)}</b></div>` : ''}
+    <div class="why"><span>Peso que o Tó dá à casa (aprendido)</span><b>${pct(C.m.w)} · total ${pct(C.t.w)}</b></div>
+    <div class="why" style="border:0"><span>Piloto automático</span><b class="${pi.profit >= 0 ? 'pos' : 'neg'}">${sEur(pi.profit)} · ROI ${sPct(pi.roi)}</b></div>
+    <div class="pn small muted">Para bater as casas no handicap/total é preciso acertar mais de 52,4% (odd 1,91). O «±» é a margem de sorte: enquanto 52,4% estiver lá dentro, ainda não se sabe se o Tó é bom ou teve sorte. Se o modelo errar mais do que a casa, o Tó baixa sozinho o peso que dá a si próprio.</div>`
+    : `<div class="pn empty"><div class="face">${toFace('ok')}</div>O diário enche-se sozinho: o Tó guarda a previsão de cada jogo antes de começar e compara com o resultado. Vai tocando em ↻ todos os dias.</div>`;
+  openSheet('Diário do Tó', h);
 }
 function openHow() {
   const M = getModel();
-  openSheet('🧠 Como pensa o Tó', `<div class="card" style="line-height:1.5">
-   <p><b>1. Força de cada equipa.</b> Pontos marcados e sofridos em todos os jogos da época, com mais peso nos mais recentes e corrigidos pela força dos adversários.</p>
-   <p><b>2. Casa e fora.</b> Na NBA quem joga em casa ganha, em média, <b>${M.HCA.toFixed(1).replace('.', ',')} pts</b> (calculado com ${M.n} jogos desta época). Atenção: no basket isto é muito menos importante do que no futebol. A diferença varia ±12 pts de jogo para jogo, e o fator casa é quase igual em todas as equipas. O Tó mede o fator casa/fora de cada uma, mas trava-o muito (máx. ±1,5 pts), porque com poucos jogos é quase tudo sorte.</p>
-   <p><b>3. Cansaço.</b> Quem jogou na véspera perde cerca de 1,4 pts.</p>
-   <p><b>4. Mercado.</b> Junta a opinião dele com a linha da casa de apostas. Começa a dar ${pct(CFG.mktW)} de peso à casa (mais no início da época) e depois <b>aprende sozinho</b>: compara as previsões que guardou antes de cada jogo com as da casa. Peso atual: <b>${pct(M.cal.m.w)}</b>. A casa sabe de lesões e notícias que o Tó não vê.</p>
-   <p><b>5. Ausências.</b> As baixas que marcas na ficha do jogo contam por inteiro, por cima de tudo (só as marques se a casa ainda não souber).</p>
-   <p><b>6. Valor.</b> Passa tudo a probabilidades. Se a odd pagar pelo menos ${pct(CFG.evMin)} acima do justo, é «valor» e entra no Boletim do Tó (e o piloto aposta).</p>
-   <p class="muted small">As três contas: <b>Tu</b> apostas o que quiseres e o Tó dá opinião; <b>Mister Tó</b> responde a cada aposta tua com a dele, no mesmo jogo e com o mesmo valor (duelo); <b>Piloto</b> aposta sozinho em todos os «valor», com ${eur(CFG.piStake)} cada, para ver se o modelo rende.</p></div>`);
+  openSheet('Como pensa o Tó', `<div class="pn" style="line-height:1.5">
+   ${catH('chart', '1. Força de cada equipa', 'var(--c-blue)')}<p>Pontos marcados e sofridos em todos os jogos da época, com mais peso nos mais recentes e corrigidos pela força dos adversários.</p>
+   ${catH('court', '2. Casa e fora', 'var(--c-orange)')}<p>Na NBA quem joga em casa ganha, em média, <b>${M.HCA.toFixed(1).replace('.', ',')} pts</b> (${M.n} jogos desta época). No basket isto pesa muito menos do que no futebol: a diferença varia ±12 pts de jogo para jogo e o fator casa é quase igual em todas as equipas. O Tó mede o de cada uma, mas trava-o (máx. ±1,5 pts).</p>
+   ${catH('clock', '3. Cansaço', 'var(--c-red)')}<p>Quem jogou na véspera perde cerca de 1,4 pts.</p>
+   ${catH('coins', '4. Mercado', 'var(--c-yellow)')}<p>Junta a opinião dele com a linha da casa de apostas. Começa com ${pct(CFG.mktW)} de peso na casa e depois <b>aprende sozinho</b> com as previsões que guardou antes de cada jogo. Peso atual: <b>${pct(M.cal.m.w)}</b>.</p>
+   ${catH('bandage', '5. Ausências', 'var(--c-purple)')}<p>As baixas que marcas na ficha do jogo contam por inteiro.</p>
+   ${catH('gem', '6. Valor e seguro', 'var(--c-green)')}<p><b>Valor:</b> a odd paga pelo menos ${pct(CFG.evMin)} acima do justo. <b>Seguro:</b> seleções com ${pct(SAFE_LEG)} ou mais, juntas enquanto o boletim passa dos ${pct(SAFE_SLIP)}.</p>
+   <p class="small muted">Contas: <b>Tu</b> apostas o que quiseres e o Tó dá opinião; <b>Mister Tó</b> responde a cada aposta tua com a dele (duelo); <b>Piloto</b> aposta sozinho ${eur(CFG.piStake)} em cada «valor» e no boletim seguro da noite.</p></div>`);
 }
 function openCfg() {
   const inp = (id, lbl, v, hint) => `<label class="f">${lbl}</label><input class="in" id="${id}" inputmode="decimal" value="${String(v).replace('.', ',')}">${hint ? `<div class="small muted">${hint}</div>` : ''}`;
-  openSheet('⚙️ Definições', `<div class="row">${['tu', 'to', 'pi'].map(k => `<div style="flex:1">${inp('c_' + k, 'Banca ' + ACC[k].n, CFG.bank[k])}</div>`).join('')}</div>
+  openSheet('Definições', `<div class="row">${['tu', 'to', 'pi'].map(k => `<div style="flex:1">${inp('c_' + k, 'Banca ' + ACC[k].n, CFG.bank[k])}</div>`).join('')}</div>
    ${inp('c_min', 'Aposta mínima da tua casa (€)', CFG.min)}
    ${inp('c_pis', 'Valor de cada aposta do piloto (€)', CFG.piStake)}
-   ${inp('c_ev', 'Valor mínimo para o Boletim (%)', Math.round(CFG.evMin * 100), 'Mais alto = menos apostas, mais seguras.')}
-   ${inp('c_w', 'Peso inicial da linha da casa de apostas (%)', Math.round(CFG.mktW * 100), 'Ponto de partida (o Tó ajusta com os resultados). 50 = metade-metade · 100 = só a casa. Mínimo usado: 50.')}
+   ${inp('c_ev', 'Valor mínimo para o Boletim (%)', Math.round(CFG.evMin * 100), 'Mais alto = menos apostas, mais exigentes.')}
+   ${inp('c_w', 'Peso inicial da linha da casa (%)', Math.round(CFG.mktW * 100), 'Ponto de partida (o Tó ajusta com os resultados). Mínimo usado: 50.')}
    <label class="f">Piloto automático</label><div class="seg"><button id="c_pon" class="${CFG.piOn ? 'on' : ''}" onclick="this.classList.add('on');$('#c_poff').classList.remove('on')">Ligado</button><button id="c_poff" class="${!CFG.piOn ? 'on' : ''}" onclick="this.classList.add('on');$('#c_pon').classList.remove('on')">Desligado</button></div>
-   <button class="btn or full" style="margin-top:14px" onclick="saveCfg()">Guardar</button>
-   <button class="btn red full" style="margin-top:10px" onclick="askConfirm('Apagar TODAS as apostas e recomeçar as três contas? Os jogos guardados ficam.','Apagar apostas','wipeBets()')">🗑️ Recomeçar as contas</button>`);
+   <button class="btn fill full" style="margin-top:14px" onclick="saveCfg()">Guardar</button>
+   <button class="btn red full" style="margin-top:10px" onclick="askConfirm('Apagar TODAS as apostas e recomeçar as três contas? Os jogos guardados ficam.','Apagar apostas','wipeBets()')">Recomeçar as contas</button>`);
 }
 function saveCfg() {
   const v = id => num($('#' + id).value);
@@ -1117,72 +1392,69 @@ function saveCfg() {
 }
 function wipeBets() { BETS = []; DEPOS = []; saveBets(); LS.set('depos', DEPOS); closeSheet(); toast('Contas a zero'); render(); }
 function openBackup() {
-  openSheet('💾 Cópia de segurança', `<p class="small">Guarda as apostas, contas e definições num ficheiro. Serve para mudar de telemóvel ou para não perder nada.</p>
-   <button class="btn or full" onclick="exportAll()">⬇️ Exportar tudo</button>
+  openSheet('Cópia de segurança', `<p class="small">Guarda as apostas, contas e definições num ficheiro. Serve para mudar de telemóvel ou para não perder nada.</p>
+   <button class="btn fill full" onclick="exportAll()">${ic('download')} Exportar tudo</button>
    <label class="f" style="margin-top:14px">Importar um ficheiro</label><input type="file" accept=".json,application/json" class="in" onchange="importAll(this)">
-   <div class="small muted" style="margin-top:6px">Importar substitui o que está neste telemóvel.</div>`);
+   <div class="small muted" style="margin-top:6px">Importar substitui o que está neste telemóvel.</div>`, true);
 }
 function exportAll() {
-  const data = {}; ['bets', 'preds', 'abs', 'depos', 'cfg', 'db'].forEach(k => data[k] = LS.get(k, null));
+  const data = {}; ['bets', 'preds', 'abs', 'depos', 'cfg', 'safe', 'db'].forEach(k => data[k] = LS.get(k, null));
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify({ app: 'mister-to', ver: APP_VER, t: Date.now(), data })], { type: 'application/json' }));
   a.download = 'mister-to-copia-' + todayET() + '.json'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
 }
 function importAll(inp) {
   const f = inp.files && inp.files[0]; if (!f) return;
   const r = new FileReader();
-  r.onload = () => { try { const j = JSON.parse(r.result); if (j.app !== 'mister-to' || !j.data) throw new Error('não é uma cópia do Mister Tó'); Object.entries(j.data).forEach(([k, v]) => { if (v != null) LS.set(k, v); }); toast('✅ Importado'); setTimeout(() => location.reload(), 700); } catch (e) { toast('❌ ' + esc(e.message)); } };
+  r.onload = () => { try { const j = JSON.parse(r.result); if (j.app !== 'mister-to' || !j.data) throw new Error('não é uma cópia do Mister Tó'); Object.entries(j.data).forEach(([k, v]) => { if (v != null) LS.set(k, v); }); toast('Importado'); setTimeout(() => location.reload(), 700); } catch (e) { toast(esc(e.message)); } };
   r.readAsText(f);
 }
-function openNet() {
-  openSheet('🩺 Testar ligação', `<p class="small">Testa cada caminho até à ESPN e guarda o mais rápido.</p><button class="btn or full" onclick="netTest(this)">Testar agora</button><div id="netBox" style="margin-top:10px"></div>`);
-}
+function openNet() { openSheet('Testar ligação', `<p class="small">Testa cada caminho até à ESPN e guarda o mais rápido.</p><button class="btn fill full" onclick="netTest(this)">Testar agora</button><div id="netBox" style="margin-top:10px"></div>`, true); }
 async function netTest(btn) {
-  btn.disabled = true; btn.textContent = '⏳ A testar…';
+  btn.disabled = true; btn.textContent = 'A testar…';
   const url = `${ESPN}/scoreboard?dates=${todayET()}`; const rows = []; let best = null;
   for (let i = 0; i < BRIDGES.length; i++) {
     const t0 = Date.now();
-    try { const ctrl = new AbortController(); const tm = setTimeout(() => ctrl.abort(), 12000); const r = await fetch(BRIDGES[i].f(url), { signal: ctrl.signal, cache: 'no-store' }); clearTimeout(tm); const j = await r.json(); const ms = Date.now() - t0; rows.push(`✅ ${BRIDGES[i].n}: ${(j.events || []).length} jogos (${ms} ms)`); if (best == null || ms < best.ms) best = { i, ms }; }
-    catch (e) { rows.push(`❌ ${BRIDGES[i].n}: ${esc(e.name === 'AbortError' ? 'demorou demais' : e.message)}`); }
+    try { const ctrl = new AbortController(); const tm = setTimeout(() => ctrl.abort(), 12000); const r = await fetch(BRIDGES[i].f(url), { signal: ctrl.signal, cache: 'no-store' }); clearTimeout(tm); const j = await r.json(); const ms = Date.now() - t0; rows.push(`<span class="pos">✓</span> ${BRIDGES[i].n}: ${(j.events || []).length} jogos (${ms} ms)`); if (best == null || ms < best.ms) best = { i, ms }; }
+    catch (e) { rows.push(`<span class="neg">✗</span> ${BRIDGES[i].n}: ${esc(e.name === 'AbortError' ? 'demorou demais' : e.message)}`); }
   }
   if (best) LS.set('bridge', best.i);
-  $('#netBox').innerHTML = `<div class="card small">${rows.join('<br>')}${best ? `<br><b>A usar: ${BRIDGES[best.i].n}</b>` : '<br><b class="neg">Nenhum caminho funcionou. Tens internet?</b>'}</div>`;
+  $('#netBox').innerHTML = `<div class="pn small">${rows.join('<br>')}${best ? `<br><b>A usar: ${BRIDGES[best.i].n}</b>` : '<br><b class="neg">Nenhum caminho funcionou. Tens internet?</b>'}</div>`;
   btn.disabled = false; btn.textContent = 'Testar outra vez';
 }
 
-/* ---------- 📲 instalar como app (igual ao Céu de Hoje) ---------- */
+/* ---------- instalar como app ---------- */
 let DEFER_INSTALL = null;
 const isStandalone = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
 const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); DEFER_INSTALL = e; if (VIEW === 'hoje' || VIEW === 'mais') render(); });
-window.addEventListener('appinstalled', () => { DEFER_INSTALL = null; LS.set('instHide', 1); toast('🏀 Mister Tó instalado! Já está no teu ecrã.'); render(); });
+window.addEventListener('appinstalled', () => { DEFER_INSTALL = null; LS.set('instHide', 1); toast('Mister Tó instalado! Já está no teu ecrã.'); render(); });
 function installBanner() {
   if (isStandalone() || LS.get('instHide', 0)) return '';
-  return `<div class="inst"><span class="e">📲</span><div class="t"><b>Instala o Mister Tó</b><small>Fica no ecrã do telemóvel, como uma app. Usa o Chrome.</small></div><button class="btn or sm" onclick="doInstall()">Instalar</button><button class="x" onclick="LS.set('instHide',1);render()" aria-label="Fechar">✕</button></div>`;
+  return `<div class="pn inst" style="border-left:3px solid var(--teal)"><span style="color:var(--teal)">${ic('phone')}</span><div class="t"><b>Instala o Mister Tó</b><small>Fica no ecrã do telemóvel, como uma app. Usa o Chrome.</small></div><button class="btn fill sm" onclick="doInstall()">Instalar</button><button class="x" onclick="LS.set('instHide',1);render()" aria-label="Fechar">${ic('x')}</button></div>`;
 }
 const INSTALL_HELP = () => isIOS()
   ? '<p><b>iPhone:</b> abre no <b>Safari</b>, toca em <b>Partilhar</b> (□↑) e escolhe <b>«Adicionar ao ecrã principal»</b>.</p>'
   : '<p><b>Android (Chrome):</b> toca nos <b>⋮</b> em cima à direita e escolhe <b>«Instalar app»</b> ou <b>«Adicionar ao ecrã principal»</b>.</p><p class="small muted">No Samsung Internet: menu ☰ → «Adicionar página a» → «Ecrã inicial».</p>';
 async function doInstall() {
-  if (DEFER_INSTALL) {
-    DEFER_INSTALL.prompt();
-    try { const r = await DEFER_INSTALL.userChoice; if (r && r.outcome === 'accepted') LS.set('instHide', 1); } catch (e) {}
-    DEFER_INSTALL = null; render(); return;
-  }
+  if (DEFER_INSTALL) { DEFER_INSTALL.prompt(); try { const r = await DEFER_INSTALL.userChoice; if (r && r.outcome === 'accepted') LS.set('instHide', 1); } catch (e) {} DEFER_INSTALL = null; render(); return; }
   openInstall();
 }
 function openInstall() {
-  openSheet('📲 Instalar como app', isStandalone() ? '<div class="card">✅ Já estás a usar o Mister Tó como app.</div>' :
-    `<div class="card"><div class="row" style="gap:12px"><div style="width:64px;height:64px;flex:0 0 64px">${toFace('win')}</div><div>Fica com o ícone do Tó no ecrã, abre em ecrã inteiro e funciona mesmo sem internet (só o 🔄 precisa de rede).</div></div></div>
-     ${DEFER_INSTALL ? '<button class="btn or full" onclick="doInstall()">📲 Instalar agora</button>' : ''}
-     <div class="card" style="margin-top:10px">${INSTALL_HELP()}<p class="small muted">Depois aparece o ícone do Mister Tó (a bola com bigode) no teu ecrã.</p></div>`);
+  openSheet('Instalar como app', isStandalone() ? '<div class="pn">Já estás a usar o Mister Tó como app.</div>' :
+    `<div class="pn"><div class="row" style="gap:12px"><div style="width:64px;height:64px;flex:0 0 64px">${toFace('win')}</div><div>Fica com o ícone do Tó no ecrã, abre em ecrã inteiro e funciona mesmo sem internet (só o ↻ precisa de rede).</div></div></div>
+     ${DEFER_INSTALL ? `<button class="btn fill full" onclick="doInstall()">${ic('phone')} Instalar agora</button>` : ''}
+     <div class="pn">${INSTALL_HELP()}</div>`, true);
 }
 
 /* ---------- arranque ---------- */
 $('#topFace').innerHTML = toFace('ok');
+$('#btnRefresh').innerHTML = ic('refresh');
+document.querySelectorAll('[data-ic]').forEach(el => { el.outerHTML = ic(el.dataset.ic); });
 window.addEventListener('hashchange', () => { const v = location.hash.slice(1); if (['hoje', 'duelo', 'contas', 'mais'].includes(v) && v !== VIEW) { VIEW = v; render(); } });
 settleAll();
 render();
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+
 </script>
 </body>
 </html>

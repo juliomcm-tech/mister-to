@@ -33,3 +33,7 @@ Ficheiros (todos na mesma pasta):
 5) ATUALIZAR A APP: substitui o index.html no GitHub. As apostas ficam no telemóvel.
 
 Nota: cada telemóvel tem as suas contas (guardadas só no aparelho).
+
+Para quem mexe no código: a app publicada é o index.html (um ficheiro só).
+As partes estão em src/ (shell.html = aspeto, engine.js = motor, ui.js = ecrãs,
+face.js = cara do Tó) e juntam-se com:  python3 build.py
