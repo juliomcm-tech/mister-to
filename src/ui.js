@@ -34,7 +34,8 @@ const ICP = {
   cal: '<rect x="3" y="5" width="18" height="16" rx="1"/><path d="M3 10h18M8 3v4M16 3v4"/>',
   court: '<rect x="3" y="4" width="18" height="16"/><path d="M3 12h18"/><circle cx="12" cy="12" r="3"/><path d="M8 4v3a4 4 0 0 0 8 0V4M8 20v-3a4 4 0 0 1 8 0v3"/>',
   info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/>',
-  bolt: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>'
+  bolt: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
+  home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>'
 };
 const ic = (n, cls) => `<svg class="i ${cls || ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICP[n] || ''}</svg>`;
 const attr = (label, v, color, txt, max) => `<div class="at" style="--k:${color}"><div class="l"><span>${label}</span><span class="v">${txt != null ? txt : `${v} <small>/ ${max || 99}</small>`}</span></div><div class="bar"><i style="width:${clamp(v / (max || 99) * 100, 0, 100).toFixed(1)}%"></i></div></div>`;
@@ -46,9 +47,10 @@ const pnH = (title, right) => `<div class="pn-h">${title}${right ? `<span class=
 /* =====================================================================
    6) ECRÃS
    ===================================================================== */
-let VIEW = (location.hash || '#hoje').slice(1);
-if (!['hoje', 'duelo', 'contas', 'mais'].includes(VIEW)) VIEW = 'hoje';
-let DAY = 0, ACCF = 'all', BT = 'seg', GT = 'ana';
+const VIEWS = ['inicio', 'jogos', 'duelo', 'contas', 'mais'];
+let VIEW = (location.hash || '#inicio').slice(1); if (VIEW === 'hoje') VIEW = 'jogos';
+if (!VIEWS.includes(VIEW)) VIEW = 'inicio';
+let DAY = 0, ACCF = 'all', BT = 'seg', GT = 'ana', SORT = LS.get('sort', 'hora');
 function go(v) { VIEW = v; history.replaceState(null, '', '#' + v); render(); window.scrollTo(0, 0); }
 function setUpd(t) { $('#upd').textContent = t; }
 const tCol = id => '#' + ((DB.teams[id] && DB.teams[id].c) || '33425a');
@@ -72,46 +74,118 @@ function renderTop() {
 function render() {
   renderTop();
   const v = $('#view');
-  if (VIEW === 'hoje') v.innerHTML = viewHoje();
+  if (VIEW === 'inicio') v.innerHTML = viewInicio();
+  else if (VIEW === 'jogos') v.innerHTML = viewJogos();
   else if (VIEW === 'duelo') v.innerHTML = viewDuelo();
   else if (VIEW === 'contas') v.innerHTML = viewContas();
   else v.innerHTML = viewMais();
-  if (VIEW === 'hoje') ssSum();
+  if (VIEW === 'jogos') ssSum();
 }
-
-/* ---------- HOJE ---------- */
 function dayGames(off) {
   const d = ymdAdd(todayET(), off);
   return Object.values(DB.games).filter(g => gValid(g) && g.ed === d).sort((x, y) => x.d < y.d ? -1 : 1);
 }
 const nmLg = id => { const n = tName(id), w = Math.max(...n.split(/\s+/).map(x => x.length)); return w >= 10 ? ' xl' : w >= 7 ? ' lg' : ''; };
-function viewHoje() {
-  const G = dayGames(DAY), lbl = ['Ontem', 'Esta noite', 'Amanhã'][DAY + 1];
-  const pre = G.filter(g => g.s === 'pre');
+const f1 = v => Math.abs(v).toFixed(1).replace('.', ',');
+const okIc = ok => ok == null ? '<span class="muted">—</span>' : ok ? `<span class="pos">${ic('check')}</span>` : `<span class="neg">${ic('x')}</span>`;
+
+/* ---------- veredito: o que o Tó guardou antes do jogo vs o resultado ---------- */
+function verdict(g) {
+  const p = PREDS[g.id]; if (!p || g.s !== 'post' || g.hs == null) return null;
+  const act = g.hs - g.as, tot = g.hs + g.as;
+  const v = { p, win: Math.sign(p.m) === Math.sign(act), fav: p.m >= 0 ? g.h : g.a, by: Math.abs(p.m) };
+  if (p.hl != null) { const side = Math.sign(p.m + p.hl), r = Math.sign(act + p.hl); v.sp = side && r ? side === r : null; }
+  if (p.tl != null) { const side = Math.sign(p.t - p.tl), r = Math.sign(tot - p.tl); v.tot = side && r ? side === r : null; }
+  if (p.pk) { const o = outcome({ mk: p.pk.mk, sel: p.pk.sel, line: p.pk.line }, g); v.pk = p.pk; v.pkr = o; v.pku = o === 'won' ? p.pk.odd - 1 : o === 'lost' ? -1 : 0; }
+  return v;
+}
+function dayVerdict(off) {
+  const G = dayGames(off).filter(g => g.s === 'post'); let n = 0, w = 0, bn = 0, bw = 0, u = 0;
+  const bets = [];
+  G.forEach(g => { const v = verdict(g); if (!v) return; n++; if (v.win) w++; if (v.pk && (v.pkr === 'won' || v.pkr === 'lost')) { bn++; if (v.pkr === 'won') bw++; u += v.pku; bets.push({ g, v }); } });
+  const S = SLIPS[ymdAdd(todayET(), off)], sr = S ? slipResult(S) : null;
+  return { n, w, bn, bw, u, S, sr, bets, G };
+}
+const unitsTxt = u => (u > 0 ? '+' : u < 0 ? '−' : '') + Math.abs(u).toFixed(2).replace('.', ',') + ' u';
+
+/* ---------- INÍCIO ---------- */
+function viewInicio() {
+  const G0 = dayGames(0), pre = G0.filter(g => g.s === 'pre'), live = G0.filter(g => g.s === 'in').length;
+  const Y = dayVerdict(-1), S0 = SLIPS[todayET()], ST = statsAll();
   const picks = pre.map(g => ({ g, P: predict(g) })).filter(x => x.P.value).sort((a, b) => b.P.value.ev - a.P.value.ev);
-  const live = G.filter(g => g.s === 'in').length;
-  const C = DAY >= 0 ? safeCands(DAY) : [];
-  const auto = safeAuto(C), pSafe = C.filter((_, i) => auto.has(i)).reduce((a, c) => a * c.p, 1);
-  let say;
-  if (!Object.keys(DB.games).length) say = 'Toca em ↻ e eu vou buscar a época toda à ESPN.';
-  else if (!G.length) say = 'Não há jogos da NBA ' + (DAY ? lbl.toLowerCase() : 'esta noite') + '.';
-  else if (live) say = `${live} jogo${live > 1 ? 's' : ''} a decorrer. Toca em ↻ para o marcador.`;
-  else if (pre.length) say = picks.length || C.length ? 'O boletim de hoje está pronto. Confirma as odds na Betano.' : 'Hoje não vejo nada claro. Às vezes o melhor é não apostar.';
-  else say = 'Jogos acabados. Vê se acertei.';
-  const first = pre[0] || G[0];
-  let h = `<div class="pn hero"><span class="tag">${esc(lbl)} na NBA</span>
-    <div class="big">${G.length} jogo${G.length === 1 ? '' : 's'}</div>
-    <div class="sub">${esc(say)}</div>
-    <div class="face">${toFace(picks.length || C.length ? 'win' : 'ok')}</div>
-    <div class="kpis"><div class="kpi" style="--k:var(--c-blue)"><small>1.º jogo</small><b>${first ? hhmm(first.d) : '—'}</b></div>
-      <div class="kpi" style="--k:var(--c-orange)"><small>Valor</small><b>${picks.length}</b></div>
-      <div class="kpi" style="--k:var(--teal)"><small>Seguro</small><b>${auto.size ? pct(pSafe) : '—'}</b></div></div></div>`;
+  const first = pre[0] || G0[0];
+  if (!Object.keys(DB.games).length) return installBanner() + `<div class="pn empty" style="margin-top:14px"><div class="face">${toFace('ok')}</div><div class="pn-h" style="justify-content:center">Olá! Sou o Mister Tó.</div><div class="muted small" style="margin:6px 0 14px">Só percebo de basket. Estudo a força de cada equipa, os jogadores, as lesões e o cansaço, comparo com as odds e faço duelos contigo.</div><button class="btn fill" onclick="refresh()">${ic('refresh')} Ir buscar os jogos</button></div>`;
+  let h = `<div class="pn hero"><span class="tag">Esta noite na NBA</span>
+    <div class="big">${G0.length} jogo${G0.length === 1 ? '' : 's'}</div>
+    <div class="sub">${live ? live + ' a decorrer agora. ' : first ? '1.º às ' + hhmm(first.d) + ' (hora de cá). ' : ''}${picks.length || S0 ? 'O meu boletim está pronto.' : pre.length ? 'Hoje não vejo nada claro.' : ''}</div>
+    <div class="face">${toFace(Y.bn && Y.u < 0 ? 'sad' : 'win')}</div>
+    <div class="kpis"><div class="kpi" style="--k:var(--c-green)"><small>Ontem · vencedores</small><b>${Y.n ? Y.w + '/' + Y.n : '—'}</b></div>
+      <div class="kpi" style="--k:var(--c-orange)"><small>Ontem · apostas</small><b class="${Y.u > 0 ? 'pos' : Y.u < 0 ? 'neg' : ''}">${Y.bn ? Y.bw + '/' + Y.bn : '—'}</b></div>
+      <div class="kpi" style="--k:var(--teal)"><small>Ontem · seguro</small><b>${Y.sr ? (Y.sr.st === 'won' ? '<span class="pos">✓</span>' : Y.sr.st === 'lost' ? '<span class="neg">✗</span>' : '…') : '—'}</b></div></div></div>`;
   h += installBanner();
-  h += `<div class="tabs">${['Ontem', 'Esta noite', 'Amanhã'].map((t, i) => `<button class="${DAY === i - 1 ? 'on' : ''}" onclick="DAY=${i - 1};render()">${t}</button>`).join('')}</div>`;
-  if (DAY >= 0 && pre.length) h += boletimPanel(C, auto, picks);
-  if (G.length) h += catH('cal', 'Jogos', 'var(--c-blue)', 'casa – fora') + G.map(gameCard).join('');
-  else if (!Object.keys(DB.games).length) h += `<div class="pn empty"><div class="face">${toFace('ok')}</div><div class="pn-h" style="justify-content:center">Olá! Sou o Mister Tó.</div><div class="muted small" style="margin:6px 0 14px">Só percebo de basket. Estudo a força de cada equipa, o cansaço e o fator casa, comparo com as odds e faço duelos contigo.</div><button class="btn fill" onclick="refresh()">${ic('refresh')} Ir buscar os jogos</button></div>`;
+  // veredito de ontem
+  h += `<div class="pn hl">${pnH(`${ic('check')} Veredito de ontem`, Y.G.length + ' jogos')}`;
+  if (!Y.n) h += `<div class="small muted">${Y.G.length ? 'O Tó não tinha previsões guardadas para ontem (só guarda quando tocas em ↻ antes dos jogos).' : 'Ontem não houve jogos.'}</div>`;
+  else {
+    h += attr('Acertou no vencedor', Math.round(Y.w / Y.n * 100), 'var(--c-green)', `${Y.w} de ${Y.n}`, 100);
+    h += Y.bets.length ? catH('gem', 'Apostas que o Tó guardou', 'var(--c-orange)', `${Y.bw}/${Y.bn} · <b class="${Y.u >= 0 ? 'pos' : 'neg'}">${unitsTxt(Y.u)}</b>`) + Y.bets.map(({ g, v }) => `<div class="why" onclick="GT='ana';openGame('${g.id}')"><span>${okIc(v.pkr === 'won')} ${esc(v.pk.lb)} <span class="muted small">@ ${odd2(v.pk.odd)} · ${esc(tAb(g.h))} ${g.hs}–${g.as} ${esc(tAb(g.a))}</span></span><b class="${v.pku >= 0 ? 'pos' : 'neg'}">${unitsTxt(v.pku)}</b></div>`).join('')
+      : `<div class="small muted" style="margin:8px 0">O Tó não encontrou valor ontem: não apostou.</div>`;
+    if (Y.S) h += catH('shield', 'Boletim seguro de ontem', 'var(--teal)', Y.sr.st === 'won' ? '<b class="pos">ganhou</b>' : Y.sr.st === 'lost' ? '<b class="neg">perdeu</b>' : 'em curso') + Y.S.legs.map(l => `<div class="why"><span>${okIc(l.r == null ? null : l.r !== 'lost')} ${esc(l.lb)}</span><b class="muted">${pct(l.p)}</b></div>`).join('');
+  }
+  h += `<button class="btn go full" style="margin-top:10px" onclick="DAY=-1;go('jogos')">${ic('list')} Ver os jogos de ontem</button></div>`;
+  // o que o Tó guardou para esta noite
+  if (pre.length) {
+    h += `<div class="pn">${pnH(`${ic('target')} O Tó guardou para esta noite`, '')}`;
+    if (S0) h += catH('shield', 'Boletim seguro', 'var(--teal)', `Tó ${pct(S0.p)} · @ ${S0.odd.toFixed(2)}`) + S0.legs.map(l => `<div class="why"><span>${esc(l.lb)} <span class="muted small">${esc(l.gl)}</span></span><b>${pct(l.p)}</b></div>`).join('');
+    if (picks.length) h += catH('gem', 'Apostas com valor', 'var(--c-orange)', picks.length + '') + picks.slice(0, 4).map(({ g, P }) => `<div class="why" onclick="GT='mk';openGame('${g.id}')"><span>${esc(selLabel(g, P.value.mk, P.value.sel, P.value.line))} <span class="muted small">${esc(tAb(g.h))}–${esc(tAb(g.a))} ${hhmm(g.d)}</span></span><b>@ ${odd2(P.value.odd)} <span class="pos small">${sPct(P.value.ev)}</span></b></div>`).join('');
+    const pp = pre.flatMap(g => propPicks(g)).sort((a, b) => b.p - a.p).slice(0, 3);
+    if (pp.length) h += catH('star', 'Jogadores em destaque', 'var(--c-blue)') + pp.map(x => `<div class="why" onclick="GT='jog';openGame('${x.g.id}')"><span>${esc(x.P.n)} · mais de ${String(x.line).replace('.', ',')} ${STATN[x.k]} <span class="muted small">${esc(tAb(x.P.t))}</span></span><b>${pct(x.p)}</b></div>`).join('');
+    if (!S0 && !picks.length && !pp.length) h += `<div class="small muted">Nada com confiança suficiente esta noite. Às vezes o melhor é não apostar.</div>`;
+    h += `<button class="btn fill full" style="margin-top:10px" onclick="DAY=0;BT='seg';go('jogos')">${ic('ball')} Abrir os jogos e o boletim</button></div>`;
+  }
+  // como vai o Tó
+  h += `<div class="pn">${pnH(`${ic('chart')} Como vai o Tó`, ST.n + ' jogos previstos')}`;
+  h += ST.n ? attr('Vencedor certo', Math.round(ST.win / ST.n * 100), 'var(--c-green)', pct(ST.win / ST.n), 100) +
+    (ST.spN ? attr('Lado certo no handicap', Math.round(ST.spW / ST.spN * 100), 'var(--c-blue)', `${pct(ST.spW / ST.spN)} <small>(precisa de 52,4%)</small>`, 100) : '') +
+    (ST.bn ? attr('Apostas do Tó', clamp(50 + ST.bu / ST.bn * 100, 0, 100), ST.bu >= 0 ? 'var(--c-green)' : 'var(--c-red)', `${ST.bw}/${ST.bn} · ${unitsTxt(ST.bu)}`, 100) : '')
+    : `<div class="small muted">As estatísticas enchem-se sozinhas: toca em ↻ todos os dias antes dos jogos.</div>`;
+  h += `<button class="btn go full" style="margin-top:8px" onclick="openStats()">${ic('chart')} Estatísticas completas</button></div>`;
   return h;
+}
+
+/* ---------- JOGOS ---------- */
+function sortGames(G) {
+  const conf = g => { const p = g.s === 'pre' ? predict(g).pH : (PREDS[g.id] ? PREDS[g.id].pH : predict(g).pH); return Math.max(p, 1 - p); };
+  const val = g => { if (g.s !== 'pre') { const p = PREDS[g.id]; return p && p.pk ? p.pk.ev : -1; } const v = predict(g).value; return v ? v.ev : -1; };
+  if (SORT === 'conf') return G.slice().sort((a, b) => conf(b) - conf(a));
+  if (SORT === 'val') return G.slice().sort((a, b) => val(b) - val(a) || (a.d < b.d ? -1 : 1));
+  return G;
+}
+function viewJogos() {
+  const G = dayGames(DAY), pre = G.filter(g => g.s === 'pre');
+  const picks = pre.map(g => ({ g, P: predict(g) })).filter(x => x.P.value).sort((a, b) => b.P.value.ev - a.P.value.ev);
+  const C = DAY >= 0 ? safeCands(DAY) : [];
+  const auto = safeAuto(C);
+  let h = `<div class="tabs">${['Ontem', 'Esta noite', 'Amanhã'].map((t, i) => `<button class="${DAY === i - 1 ? 'on' : ''}" onclick="DAY=${i - 1};render()">${t}</button>`).join('')}</div>`;
+  if (DAY >= 0 && pre.length) h += boletimPanel(C, auto, picks);
+  else if (G.some(g => g.s === 'post')) h += pastPanel(DAY);
+  if (G.length) {
+    h += `<div class="row" style="margin:14px 0 4px"><div class="cat" style="--k:var(--c-blue);margin:0;flex:1">${ic('cal')}Jogos</div><button class="btn sm" onclick="openHelp()" aria-label="Ajuda">${ic('info')} O que quer dizer?</button></div>
+      <div class="seg" style="margin-bottom:6px">${[['hora', 'Hora'], ['conf', 'Confiança'], ['val', 'Valor']].map(([k, t]) => `<button class="${SORT === k ? 'on' : ''}" onclick="SORT='${k}';LS.set('sort','${k}');render()">${t}</button>`).join('')}</div>` + sortGames(G).map(gameCard).join('');
+  } else h += `<div class="pn small muted">${Object.keys(DB.games).length ? 'Não há jogos da NBA neste dia.' : 'Toca em ↻ para o Tó ir buscar os jogos.'}</div>`;
+  return h;
+}
+/* boletim de um dia que já passou: o que o Tó tinha guardado e se ganhou */
+function pastPanel(off) {
+  const Y = dayVerdict(off);
+  let h = `<div class="pn hl">${pnH(`${ic('check')} Veredito do dia`, Y.n ? `vencedor ${Y.w}/${Y.n}` : '')}`;
+  if (!Y.n && !Y.S) return h + `<div class="small muted">O Tó não tinha previsões guardadas para este dia.</div></div>`;
+  if (Y.S) h += catH('shield', 'Boletim seguro', 'var(--teal)', `${Y.sr.w}/${Y.sr.n} · ${Y.sr.st === 'won' ? '<b class="pos">ganhou</b>' : Y.sr.st === 'lost' ? '<b class="neg">perdeu</b>' : 'em curso'}`) + Y.S.legs.map(l => `<div class="why"><span>${okIc(l.r == null ? null : l.r !== 'lost')} ${esc(l.lb)} <span class="muted small">${esc(l.gl)}</span></span><b class="muted">${pct(l.p)} · @ ${odd2(l.odd)}</b></div>`).join('');
+  h += catH('gem', 'Apostas com valor', 'var(--c-orange)', Y.bn ? `${Y.bw}/${Y.bn} · <b class="${Y.u >= 0 ? 'pos' : 'neg'}">${unitsTxt(Y.u)}</b>` : '') +
+    (Y.bets.length ? Y.bets.map(({ g, v }) => `<div class="why"><span>${okIc(v.pkr === 'won')} ${esc(v.pk.lb)} <span class="muted small">@ ${odd2(v.pk.odd)}</span></span><b class="${v.pku >= 0 ? 'pos' : 'neg'}">${unitsTxt(v.pku)}</b></div>`).join('') : '<div class="small muted">O Tó não apostou neste dia (nada com valor).</div>');
+  const pr = Object.values(PROPS).filter(x => DB.games[x.g] && DB.games[x.g].ed === ymdAdd(todayET(), off) && x.w != null && x.w >= 0);
+  if (pr.length) h += catH('star', 'Jogadores', 'var(--c-blue)', `${pr.filter(x => x.w === 1).length}/${pr.length}`) + pr.slice(0, 8).map(x => `<div class="why"><span>${okIc(x.w === 1)} ${esc(x.n)} · mais de ${String(x.line).replace('.', ',')} ${STATN[x.k]}</span><b class="muted">fez ${x.v}</b></div>`).join('');
+  return h + `<div class="small muted" style="margin-top:6px">u = unidades (1 u = o valor de uma aposta). Tudo foi guardado antes de cada jogo começar.</div></div>`;
 }
 
 /* ---------- 🛡️ BOLETIM DE HOJE ---------- */
@@ -122,26 +196,37 @@ function boletimPanel(C, auto, picks) {
   if (SS.k !== k) { SS = { k, C, sel: new Set(C.filter((_, i) => auto.has(i)).map(legKey)), odd: {}, stake: Math.max(CFG.min, 1) }; }
   SS.C = C; SS.auto = new Set(C.filter((_, i) => auto.has(i)).map(legKey));
   if (C.length) safeLogSave(C.filter((_, i) => auto.has(i)));
-  let h = `<div class="pn hl">${pnH(`${ic('target')} Boletim de hoje`, DAY ? 'jogos de amanhã' : 'só jogos desta noite')}
-    <div class="seg"><button class="${BT === 'seg' ? 'on' : ''}" onclick="BT='seg';render()">${ic('shield')} Seguro</button><button class="${BT === 'val' ? 'on' : ''}" onclick="BT='val';render()">${ic('gem')} Valor${picks.length ? ' · ' + picks.length : ''}</button></div>`;
+  const pre = dayGames(DAY).filter(g => g.s === 'pre');
+  const PP = pre.flatMap(g => propPicks(g)).filter(x => x.p >= 0.72).sort((a, b) => b.p - a.p).slice(0, 14);
+  if (PP.length) propLogSave(PP.slice(0, 10));
+  let h = `<div class="pn hl">${pnH(`${ic('target')} Boletim ${DAY ? 'de amanhã' : 'de hoje'}`, DAY ? 'só jogos de amanhã' : 'só jogos desta noite')}
+    <div class="seg"><button class="${BT === 'seg' ? 'on' : ''}" onclick="BT='seg';render()">${ic('shield')} Seguro</button><button class="${BT === 'val' ? 'on' : ''}" onclick="BT='val';render()">${ic('gem')} Valor${picks.length ? ' ' + picks.length : ''}</button><button class="${BT === 'jog' ? 'on' : ''}" onclick="BT='jog';render()">${ic('star')} Jogadores</button></div>`;
   if (BT === 'seg') {
-    if (!C.length) h += `<div class="small muted" style="margin-top:10px">Nenhuma seleção chega aos ${pct(SAFE_LEG)} esta noite. Melhor não forçar.</div>`;
+    if (!C.length) h += `<div class="small muted" style="margin-top:10px">Nenhuma seleção chega aos ${pct(SAFE_LEG)}. Melhor não forçar.</div>`;
     else {
-      h += `<div class="small muted" style="margin:10px 0 2px">As seleções mais seguras, juntas enquanto o boletim inteiro passa dos ${pct(SAFE_SLIP)}. <b>Seguro não é certo</b>: num boletim de 70%, 3 em cada 10 falham.</div>` +
+      h += `<div class="small muted" style="margin:10px 0 2px">As seleções mais seguras, juntas enquanto o boletim inteiro passa dos ${pct(SAFE_SLIP)}. <b>Seguro não é certo</b>: num boletim de 70%, 3 em cada 10 falham. As caixas amarelas têm odd estimada: mete a da Betano.</div>` +
         C.map((c, i) => { const key = legKey(c), od = SS.odd[key] != null ? SS.odd[key] : c.odd; return `<div class="leg"><input type="checkbox" ${SS.sel.has(key) ? 'checked' : ''} onchange="ssTog(${i},this.checked)">
-        <div><div class="t">${esc(c.lb)}</div><div class="g">${hhmm(c.g.d)} · ${esc(tAb(c.g.h))} – ${esc(tAb(c.g.a))} · ${esc(mkName(c.mk))}</div><div class="p">Tó ${pct(c.p)}${c.est ? ' · odd estimada' : ''}</div></div>
-        <input class="od${c.est && SS.odd[key] == null ? ' est' : ''}" inputmode="decimal" value="${String(od).replace('.', ',')}" oninput="ssOdd(${i},this)"></div>`; }).join('') +
-        `<div class="sum" id="ssSum"></div>`;
+        <div><div class="t">${esc(c.lb)}</div><div class="g">${hhmm(c.g.d)} · ${esc(tAb(c.g.h))} – ${esc(tAb(c.g.a))} · ${esc(mkName(c.mk))}</div><div class="p">Tó ${pct(c.p)}</div></div>
+        <input class="od${c.est && SS.odd[key] == null ? ' est' : ''}" inputmode="decimal" value="${String(od).replace('.', ',')}" oninput="ssOdd(${i},this)"></div>`; }).join('') + `<div class="sum" id="ssSum"></div>`;
     }
     const st = safeStats();
     if (st) h += `<div class="small muted" style="margin-top:8px">${ic('chart')} Seguro até hoje: acertou <b>${st.w}/${st.n}</b> seleções (${pct(st.w / st.n)}) · prometia ${pct(st.p)}</div>`;
+  } else if (BT === 'val') {
+    h += picks.length ? picks.map(({ g, P }) => { const v = P.value, i = P.cands.indexOf(v); return `<div class="pick"><div style="min-width:0"><div class="g">${hhmm(g.d)} · ${esc(tAb(g.h))} – ${esc(tAb(g.a))} · ${esc(mkName(v.mk))}</div><div class="l">${esc(selLabel(g, v.mk, v.sel, v.line))}</div><div class="g" style="text-transform:none">Tó ${pct(v.p)} · odd justa ${odd2(v.fair)}${v.der ? ' · odd estimada' : ''}</div></div>
+      <div class="o">${odd2(v.odd)}<small>valor ${sPct(v.ev)}</small></div><button class="btn go sm" onclick="openBet('${g.id}',${i})">Apostar</button></div>`; }).join('') + `<div class="small muted" style="margin-top:8px">«Valor» = a odd da casa paga mais do que o Tó acha justo. Ex.: o Tó dá 55% → odd justa 1,82; se a casa paga 1,95, há valor. Não é certeza: é vantagem a longo prazo.</div>`
+      : `<div class="small muted" style="margin-top:10px">O Tó não encontra odds com pelo menos ${pct(CFG.evMin)} de valor. Não apostar também é uma decisão.</div>`;
   } else {
-    h += picks.length ? picks.map(({ g, P }) => { const v = P.value, i = P.cands.indexOf(v); return `<div class="pick"><div style="min-width:0"><div class="g">${hhmm(g.d)} · ${esc(tAb(g.h))} – ${esc(tAb(g.a))} · ${esc(mkName(v.mk))}</div><div class="l">${esc(selLabel(g, v.mk, v.sel, v.line))}</div><div class="g" style="text-transform:none">Tó ${pct(v.p)} · justa ${odd2(v.fair)}${v.der ? ' · odd estimada' : ''}</div></div>
-      <div class="o">${odd2(v.odd)}<small>valor ${sPct(v.ev)}</small></div><button class="btn go sm" onclick="openBet('${g.id}',${i})">Apostar</button></div>`; }).join('') + `<div class="small muted" style="margin-top:8px">«Valor» = a odd paga mais do que devia. É vantagem a longo prazo, não certeza.</div>`
-      : `<div class="small muted" style="margin-top:10px">Esta noite o Tó não encontra odds com pelo menos ${pct(CFG.evMin)} de valor.</div>`;
+    if (!Object.keys(PL.p).length) h += `<div class="small muted" style="margin:10px 0">O Tó ainda não estudou os jogadores. Toca em ↻ (estuda 25 jogos de cada vez) ou estuda tudo de uma vez:</div><button class="btn go full" onclick="openPlayers()">${ic('star')} Estudar jogadores</button>`;
+    else if (!PP.length) h += `<div class="small muted" style="margin-top:10px">Ainda sem jogadores com dados suficientes nestes jogos.</div>`;
+    else h += `<div class="small muted" style="margin:10px 0 2px">Linhas «seguras» por jogador (o Tó dá ~75-85%). A casa costuma pagar pouco por estas: compara com a odd justa.</div>` +
+      PP.map(x => `<div class="pick" onclick="GT='jog';openGame('${x.g.id}')"><div style="min-width:0"><div class="g">${hhmm(x.g.d)} · ${esc(tAb(x.P.t))} vs ${esc(tAb(x.P.t === x.g.h ? x.g.a : x.g.h))}</div><div class="l">${esc(x.P.n)} · mais de ${String(x.line).replace('.', ',')} ${STATN[x.k]}</div><div class="g" style="text-transform:none">previsão ${x.m.toFixed(1).replace('.', ',')} · média ${pStats(x.P)[x.k].toFixed(1).replace('.', ',')}</div></div><div class="o">${pct(x.p)}<small>justa ${odd2(x.fair)}</small></div></div>`).join('');
+    const ps = propStats();
+    if (ps) h += `<div class="small muted" style="margin-top:8px">${ic('chart')} Jogadores até hoje: ${ps.w}/${ps.n} (${pct(ps.w / ps.n)}) · prometia ${pct(ps.p)}</div>`;
   }
   return h + '</div>';
 }
+function propStats() { const g = Object.values(PROPS).filter(x => x.w === 0 || x.w === 1); return g.length ? { n: g.length, w: g.filter(x => x.w === 1).length, p: g.reduce((a, x) => a + x.p, 0) / g.length } : null; }
+
 function ssTog(i, on) { const k = legKey(SS.C[i]); if (on) SS.sel.add(k); else SS.sel.delete(k); ssSum(); }
 function ssOdd(i, el) { const v = num(el.value); SS.odd[legKey(SS.C[i])] = v; el.classList.remove('est'); ssSum(); }
 const ssLegs = () => SS.C.filter(c => SS.sel.has(legKey(c))).map(c => ({ c, odd: SS.odd[legKey(c)] != null ? SS.odd[legKey(c)] : c.odd }));
@@ -200,19 +285,29 @@ function gameCard(g) {
   const tags = [];
   if (P.rh === 1) tags.push(`<span class="tg" style="--k:var(--c-red)">${esc(tAb(g.h))} cansado</span>`);
   if (P.ra === 1) tags.push(`<span class="tg" style="--k:var(--c-red)">${esc(tAb(g.a))} cansado</span>`);
+  if (g.s === 'pre' && (P.inj.h + P.inj.a) >= 1.5) tags.push(`<span class="tg" style="--k:var(--c-yellow)">lesões</span>`);
   if (g.s === 'pre' && P.value) tags.push(`<span class="tg" style="--k:var(--c-orange)">valor</span>`);
   const mine = BETS.filter(b => b.acc === 'tu' && (b.g === g.id || (b.legs && b.legs.some(l => l.g === g.id)))).length;
   if (mine) tags.push(`<span class="tg" style="--k:var(--c-blue)">${ic('star')} ${mine}</span>`);
-  let say;
-  const fav = P.m >= 0 ? g.h : g.a, by = Math.abs(P.m);
-  if (g.s === 'post' && PREDS[g.id]) { const pm = PREDS[g.id].m, ok = Math.sign(pm) === Math.sign(g.hs - g.as); say = `<span class="${ok ? 'pos' : 'neg'}">${ic(ok ? 'check' : 'x')}</span> O Tó dava ${esc(tName(pm >= 0 ? g.h : g.a))} por ${Math.abs(pm).toFixed(1).replace('.', ',')}`; }
-  else say = `<b>Tó:</b> ${esc(tName(fav))} ${by < 1 ? 'muito equilibrado' : 'por ' + by.toFixed(1).replace('.', ',')} · ${Math.round(P.t)} pts`;
-  const mk = [o.hl != null ? `Linha ${esc(tAb(g.h))} ${lineTxt(o.hl)}` : '', o.tl != null ? `Total ${String(o.tl).replace('.', ',')}` : '', o.hml ? `Odds ${odd2(o.hml)} / ${odd2(o.aml)}` : ''].filter(Boolean).join(' · ') || 'Sem odds da ESPN ainda';
+  // linha da casa, por extenso
+  const favH = o.hl != null ? o.hl <= 0 : null;
+  const book = o.hl != null || o.tl != null || o.hml ? `<div class="mk">${ic('coins')} Casa: ${o.hl != null ? (o.hl === 0 ? 'equilibrado' : `${esc(tAb(favH ? g.h : g.a))} favorito por ${f1(o.hl)}`) : ''}${o.tl != null ? ` · total ${String(o.tl).replace('.', ',')} pts` : ''}${o.hml ? ` · vencedor ${esc(tAb(g.h))} ${odd2(o.hml)} / ${esc(tAb(g.a))} ${odd2(o.aml)}` : ''}</div>` : `<div class="mk">Sem odds da ESPN ainda</div>`;
+  let say, bet = '';
+  const v = g.s === 'post' ? verdict(g) : null;
+  if (v) {
+    say = `${okIc(v.win)} Vencedor: o Tó dava ${esc(tName(v.fav))} por ${f1(v.by)}${v.sp != null ? ` · handicap ${okIc(v.sp)}` : ''}${v.tot != null ? ` · total ${okIc(v.tot)}` : ''}`;
+    bet = v.pk ? `<div class="say"><b>Aposta do Tó:</b> ${esc(v.pk.lb)} @ ${odd2(v.pk.odd)} → ${v.pkr === 'won' ? `<b class="pos">ganhou ${unitsTxt(v.pku)}</b>` : v.pkr === 'lost' ? `<b class="neg">perdeu</b>` : 'devolvida'}</div>` : `<div class="mk">O Tó não apostou neste jogo.</div>`;
+  } else if (g.s === 'post') say = `<span class="muted">Sem previsão guardada antes do jogo.</span>`;
+  else {
+    const fav = P.m >= 0 ? g.h : g.a, by = Math.abs(P.m);
+    say = `<b>Tó:</b> ${esc(tName(fav))} ${by < 1 ? 'muito equilibrado' : 'ganha por ' + f1(by)} (${pct(Math.max(P.pH, 1 - P.pH))}) · ${Math.round(P.t)} pts`;
+    bet = g.s === 'pre' ? (P.value ? `<div class="say"><b style="color:var(--c-orange)">👉 Aposta do Tó:</b> ${esc(selLabel(g, P.value.mk, P.value.sel, P.value.line))} @ ${odd2(P.value.odd)} <span class="pos small">valor ${sPct(P.value.ev)}</span></div>` : `<div class="mk">Aposta do Tó: nenhuma (nada paga acima do justo)</div>`) : '';
+  }
   const team = (id, r, t, side) => `<div class="team${side === 'a' ? ' r' : ''}">${logo(id)}<div style="min-width:0"><div class="nm${nmLg(id)}">${esc(tName(id))}</div><div class="rc"><span class="tg" style="--k:var(--teal);padding:0 4px">${t.ovr}</span> ${r.w || 0}-${r.l || 0}<br>${side === 'h' ? 'casa ' + (r.hw || 0) + '-' + (r.hl || 0) : 'fora ' + (r.aw || 0) + '-' + (r.al || 0)}</div></div></div>`;
   return `<div class="gc" onclick="GT='ana';openGame('${g.id}')"><div class="stripe"><i style="background:${tCol(g.h)}"></i><i style="background:${tCol(g.a)}"></i></div><div class="hd">${head}<span class="r">${tags.join('')}</span></div>
   <div class="tm">${team(g.h, rh, th, 'h')}<div class="score">${mid}</div>${team(g.a, ra, ta, 'a')}</div>
   <div class="ft"><div class="bar two" style="height:6px"><i style="width:${(P.pH * 100).toFixed(1)}%;background:${tCol(g.h)}"></i><i style="width:${((1 - P.pH) * 100).toFixed(1)}%;background:${tCol(g.a)}"></i></div>
-  <div class="say">${say}</div><div class="mk">${mk}</div></div></div>`;
+  <div class="say">${say}</div>${bet}${book}</div></div>`;
 }
 
 /* ---------- FOLHA ---------- */
@@ -231,16 +326,39 @@ function openGame(id) {
    <div class="team r">${logo(g.a, 40)}<div style="min-width:0"><div class="nm${nmLg(g.a)}">${esc(tName(g.a))}</div><div class="rc">fora</div></div></div></div>
    <div class="small muted" style="text-align:center;margin:4px 0 10px">${dayLbl(g.d)} às ${hhmm(g.d)} (hora de cá)</div>
    <div class="big-ovr"><div class="t">Confiança do Tó<div class="small muted" style="text-transform:none;letter-spacing:0">${esc(tName(favH ? g.h : g.a))} ganha</div></div><div class="grow"></div><div class="n">${conf}</div></div><div class="ruler"></div></div>
-   <div class="tabs">${[['ana', 'Análise'], ['mk', 'Mercados'], ['eq', 'Equipas'], ['les', 'Lesões']].map(([k, t]) => `<button class="${GT === k ? 'on' : ''}" onclick="GT='${k}';openGame('${id}')">${t}</button>`).join('')}</div>`;
+   <div class="tabs" style="padding-left:0">${[['ana', 'Análise'], ['mk', 'Odds'], ['eq', 'Equipas'], ['jog', 'Jogadores'], ['les', 'Lesões']].map(([k, t]) => `<button style="font-size:.8rem;padding:10px 2px" class="${GT === k ? 'on' : ''}" onclick="GT='${k}';openGame('${id}')">${t}</button>`).join('')}</div>`;
   if (GT === 'ana') h += tabAnalise(g, P);
   else if (GT === 'mk') h += tabMercados(g, P);
   else if (GT === 'eq') h += tabEquipas(g, P);
-  else h += tabLesoes(g);
+  else if (GT === 'jog') h += tabJogadores(g, P);
+  else h += tabLesoes(g, P);
   const mine = BETS.filter(b => b.st !== 'pass' && (b.g === g.id || (b.legs && b.legs.some(l => l.g === g.id))));
   if (mine.length) h += catH('list', 'Apostas neste jogo', 'var(--c-blue)') + `<div class="pn" style="margin-top:0">${mine.map(betRow).join('')}</div>`;
   if (g.s === 'pre' && new Date(g.d).getTime() > Date.now()) h += `<div class="cta"><button class="btn fill full" onclick="openBet('${g.id}')">${ic('target')} Apostar neste jogo</button></div>`;
   openSheet(esc(tAb(g.h)) + ' <span class="muted">vs</span> ' + esc(tAb(g.a)), h);
 }
+
+function tabJogadores(g, P) {
+  if (!Object.keys(PL.p).length) return `<div class="pn small">O Tó ainda não estudou os jogadores. <button class="btn go full" style="margin-top:8px" onclick="openPlayers()">${ic('star')} Estudar jogadores</button></div>`;
+  const L = gamePlayers(g), I = INJ[g.id] || { h: [], a: [] };
+  const out = I.h.concat(I.a).filter(x => /out/i.test(x.st));
+  const done = g.s !== 'pre';
+  let h = '';
+  [g.h, g.a].forEach(tid => {
+    const T = L.filter(x => x.P.t === tid).slice(0, 8);
+    h += catH('star', esc(tName(tid)), tCol(tid), done ? 'médias da época' : 'previsão para este jogo');
+    if (!T.length) { h += '<div class="small muted">Sem dados destes jogadores ainda.</div>'; return; }
+    h += `<table class="tbl"><tr><th>Jogador</th><th>Min</th><th>Pts</th><th>Res</th><th>Ast</th><th>3P</th></tr>` + T.map(x => {
+      const pr = x.pr, s = x.s, row = done ? (x.P.g.find(r => r[0] === g.id) || null) : null;
+      const cell = (pv, sv, rv) => row ? `<b>${rv}</b>` : `<b>${pv.toFixed(1).replace('.', ',')}</b>`;
+      return `<tr><td style="text-align:left">${esc(x.P.n)}<div class="small muted">${esc(x.P.pos)} · ${s.gp} j${impactOf(x.P) >= 3 ? ' · <span style="color:var(--c-orange)">peça-chave</span>' : ''}</div></td><td>${Math.round(row ? row[2] : s.min)}</td><td>${cell(pr.pts, s.pts, row && row[3])}</td><td>${cell(pr.reb, s.reb, row && row[4])}</td><td>${cell(pr.ast, s.ast, row && row[5])}</td><td>${cell(pr.tp, s.tp, row && row[6])}</td></tr>`;
+    }).join('') + '</table>';
+    if (!done) h += T.slice(0, 3).map(x => { const ln = half(x.pr.pts - 0.85 * x.pr.sdPts), ln2 = half(x.pr.pts); return `<div class="why"><span>${esc(x.P.n)}: mais de ${String(ln).replace('.', ',')} pts · mais de ${String(ln2).replace('.', ',')} pts</span><b>${pct(pOver(x.pr.pts, x.pr.sdPts, ln))} · ${pct(pOver(x.pr.pts, x.pr.sdPts, ln2))}</b></div>`; }).join('');
+  });
+  if (out.length) h += `<div class="small muted" style="margin-top:6px">Fora deste jogo (lesão): ${out.map(x => esc(x.n)).join(', ')}.</div>`;
+  return h + `<div class="small muted" style="margin-top:8px">Previsão = média recente com mais peso nos últimos jogos, ajustada à defesa do adversário, casa/fora e cansaço. Probabilidade «mais de» = quantas vezes o Tó espera que passe a linha.</div>`;
+}
+
 function tabAnalise(g, P) {
   const f1 = v => (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v).toFixed(1).replace('.', ',');
   let h = catH('chart', 'Previsão', 'var(--c-blue)') +
@@ -254,12 +372,6 @@ function tabAnalise(g, P) {
     (P.absAdj ? `<div class="why"><span>Ausências que marcaste</span><b class="${P.absAdj > 0 ? 'pos' : 'neg'}">${f1(P.absAdj)}</b></div>` : '') +
     `<div class="why" style="border:0"><span><b style="font-size:1.05rem">Conclusão:</b> ${esc(tName(P.m >= 0 ? g.h : g.a))} por ${Math.abs(P.m).toFixed(1).replace('.', ',')} · total ${P.t.toFixed(1).replace('.', ',')}</span></div></div>` +
     (P.gpMin < 6 ? `<div class="small muted">Início de época: com poucos jogos o Tó confia mais na linha da casa.</div>` : '');
-  if (g.s === 'pre') {
-    const ab = ABS[g.id] || { h: 0, a: 0 };
-    const row = side => `<div class="row w" style="margin:8px 0"><b style="min-width:96px;font-family:var(--cond);font-size:1rem">${esc(tName(side === 'h' ? g.h : g.a))}</b><span class="tg" style="--k:${ab[side] ? 'var(--c-red)' : 'var(--edge2)'}">${ab[side] ? '−' + String(ab[side]).replace('.', ',') + ' pts' : 'completo'}</span>
-      <button class="btn sm" onclick="absAdd('${g.id}','${side}',4)">+ estrela fora</button><button class="btn sm" onclick="absAdd('${g.id}','${side}',1.5)">+ titular fora</button>${ab[side] ? `<button class="btn sm" onclick="absAdd('${g.id}','${side}',0)">limpar</button>` : ''}</div>`;
-    h += catH('bandage', 'Ausências de última hora', 'var(--c-red)') + row('h') + row('a') + `<div class="small muted">Marca só baixas que a casa de apostas ainda não meteu na linha. Contam por inteiro.</div>`;
-  }
   return h;
 }
 function tabMercados(g, P) {
@@ -280,9 +392,33 @@ function tabEquipas(g, P) {
   };
   return card(g.h, 'h') + card(g.a, 'a') + `<div class="small muted">Notas de 0 a 99 calculadas pelo Tó com os resultados da época (corrigidas pela força dos adversários).</div>`;
 }
-function tabLesoes(g) {
-  return catH('bandage', 'Lesões na ESPN', 'var(--c-red)') + `<button class="btn go full" onclick="loadInjuries('${g.id}',this)">${ic('download')} Perguntar à ESPN</button><div id="inj"></div>`;
+function tabLesoes(g, P) {
+  const I = INJ[g.id];
+  let h = catH('bandage', 'Lesões (ESPN)', 'var(--c-red)', I ? 'lidas ' + new Date(I.t).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' }) : '');
+  if (!I) h += `<div class="small muted">Ainda não lidas. Toca em ↻ (lê as lesões dos jogos de hoje e de amanhã) ou só deste jogo:</div>`;
+  else {
+    ['h', 'a'].forEach(side => {
+      const tid = side === 'h' ? g.h : g.a, L = P.inj.list[side];
+      h += `<div class="pn"><div class="row">${logo(tid, 32)}<b style="font:italic 900 1.05rem var(--cond);text-transform:uppercase;flex:1">${esc(tName(tid))}</b><span class="tg" style="--k:${P.inj[side] >= 1 ? 'var(--c-red)' : 'var(--edge2)'}">−${f1(P.inj[side])} pts no modelo</span></div>` +
+        (L.length ? L.map(x => `<div class="why"><span>${esc(x.n)} <span class="muted small">${esc(x.pos)}${x.ppg != null ? ' · ' + x.ppg.toFixed(1).replace('.', ',') + ' pts/jogo' : ''}${x.d ? ' · ' + esc(x.d) : ''}</span>${x.eff >= 0.3 ? `<div class="small muted">vale ${f1(x.imp)} pts${x.sh < 0.95 ? ` · já falhou ${Math.round((1 - x.sh) * 10)} dos últimos 10 (a equipa já joga sem ele)` : ''}</div>` : ''}</span><span class="tg" style="--k:${/out/i.test(x.st) ? 'var(--c-red)' : 'var(--c-yellow)'}">${esc(ST_PT(x.st))}</span></div>`).join('') : '<div class="small muted" style="margin-top:6px">sem lesões na lista</div>') + '</div>';
+    });
+    h += `<div class="small muted">As lesões entram só no modelo do Tó (a casa já as conhece). Quem já falhou os últimos jogos quase não conta: a força recente da equipa já foi medida sem ele. Como o Tó dá ${pct(P.W || 0)} de peso à casa, a previsão final mexe pouco — de propósito.</div>`;
+  }
+  h += `<button class="btn go full" style="margin-top:10px" onclick="refreshInj('${g.id}',this)">${ic('refresh')} Atualizar lesões deste jogo</button>`;
+  if (g.s === 'pre') {
+    const ab = ABS[g.id] || { h: 0, a: 0 };
+    const row = side => `<div class="row w" style="margin:8px 0"><b style="min-width:96px;font-family:var(--cond);font-size:1rem">${esc(tName(side === 'h' ? g.h : g.a))}</b><span class="tg" style="--k:${ab[side] ? 'var(--c-red)' : 'var(--edge2)'}">${ab[side] ? '−' + String(ab[side]).replace('.', ',') + ' pts' : '—'}</span>
+      <button class="btn sm" onclick="absAdd('${g.id}','${side}',4)">+ estrela</button><button class="btn sm" onclick="absAdd('${g.id}','${side}',1.5)">+ titular</button>${ab[side] ? `<button class="btn sm" onclick="absAdd('${g.id}','${side}',0)">limpar</button>` : ''}</div>`;
+    h += catH('bolt', 'Notícia de última hora (manual)', 'var(--c-yellow)') + row('h') + row('a') + `<div class="small muted">Só para baixas que ainda não estão na linha da casa (ex.: anunciada 30 min antes). Contam por inteiro.</div>`;
+  }
+  return h;
 }
+async function refreshInj(id, btn) {
+  const g = DB.games[id]; btn.disabled = true; btn.textContent = 'A perguntar à ESPN…';
+  try { const j = await getJSON(`${ESPN}/summary?event=${id}`); if (g.s === 'pre') INJ[id] = parseInj(j, g); else { parseBox(j, g); PL.seen[id] = 1; savePL(); } LS.set('inj', INJ); MODEL = null; GT = 'les'; openGame(id); render(); toast('Lesões atualizadas — análise refeita'); }
+  catch (e) { btn.disabled = false; btn.innerHTML = ic('refresh') + ' Atualizar lesões deste jogo'; toast('A ESPN não respondeu'); }
+}
+
 function absAdd(id, side, v) {
   const ab = ABS[id] || { h: 0, a: 0 };
   ab[side] = v ? r2((ab[side] || 0) + v) : 0;
@@ -290,22 +426,6 @@ function absAdd(id, side, v) {
   LS.set('abs', ABS); openGame(id); render();
 }
 const ST_PT = s => /out/i.test(s) ? 'Fora' : /doubt/i.test(s) ? 'Muito duvidoso' : /question|day-to-day|gtd/i.test(s) ? 'Dúvida' : /prob/i.test(s) ? 'Provável' : s;
-async function loadInjuries(id, btn) {
-  const g = DB.games[id]; btn.disabled = true; btn.textContent = 'A perguntar à ESPN…';
-  try {
-    const j = await getJSON(`${ESPN}/summary?event=${id}`);
-    const inj = j.injuries || []; let h = '';
-    [g.h, g.a].forEach(tid => {
-      const blk = inj.find(x => x.team && String(x.team.id) === String(tid)) || inj.find(x => x.team && x.team.abbreviation === tAb(tid));
-      const L = ((blk && blk.injuries) || []).map(x => ({ n: (x.athlete && (x.athlete.displayName || x.athlete.shortName)) || '?', pos: (x.athlete && x.athlete.position && x.athlete.position.abbreviation) || '', st: x.status || (x.type && x.type.description) || '', d: (x.details && (x.details.type || x.details.detail)) || '' }));
-      h += `<div class="pn"><div class="row">${logo(tid, 32)}<b style="font:italic 900 1.05rem var(--cond);text-transform:uppercase">${esc(tName(tid))}</b></div>${L.length ? L.map(p => `<div class="why"><span>${esc(p.n)} <span class="muted small">${esc(p.pos)} ${esc(p.d)}</span></span><span class="tg" style="--k:${/out/i.test(p.st) ? 'var(--c-red)' : 'var(--c-yellow)'}">${esc(ST_PT(p.st))}</span></div>`).join('') : '<div class="small muted" style="margin-top:6px">sem lesões na lista</div>'}</div>`;
-    });
-    const pr = j.predictor;
-    if (pr && pr.homeTeam && pr.homeTeam.gameProjection != null) h += `<div class="pn small">${ic('chart')} Previsão da ESPN (BPI): ${esc(tAb(g.h))} ${Math.round(+pr.homeTeam.gameProjection)}% · Tó ${pct(predict(g).pH)}</div>`;
-    $('#inj').innerHTML = h; btn.style.display = 'none';
-  } catch (e) { btn.disabled = false; btn.innerHTML = ic('download') + ' Perguntar à ESPN'; toast('A ESPN não respondeu'); }
-}
-
 /* ---------- APOSTAR (e o Tó responde) ---------- */
 let BF = null;
 function openBet(id, ci) {
@@ -411,7 +531,7 @@ function viewDuelo() {
     <div class="mid">VS</div>
     <div><div class="av">${toFace(him > you ? 'win' : him < you ? 'sad' : 'ok')}</div><div class="nm">Mister Tó</div><div class="ovr" style="margin-top:6px"><b class="${him >= 0 ? 'pos' : 'neg'}">${sEur(him)}</b><small>LUCRO</small></div></div></div>
     <div style="margin-top:14px">${attr('Duelos ganhos por ti', n ? Math.round(w / n * 100) : 0, 'var(--c-blue)', `${w} de ${n}`, 100)}${attr('Duelos ganhos pelo Tó', n ? Math.round(l / n * 100) : 0, 'var(--c-orange)', `${l} de ${n}`, 100)}${e ? `<div class="small muted">${e} empate${e > 1 ? 's' : ''} (mesma aposta)</div>` : ''}</div></div>`;
-  if (!D.length) return h + `<div class="pn empty"><div class="face">${toFace('ok')}</div><b>Ainda não houve duelos.</b><div class="muted small" style="margin:6px 0 14px">Abre um jogo em «Hoje» ou regista o Boletim seguro. Eu respondo com a minha aposta.</div><button class="btn fill" onclick="go('hoje')">${ic('ball')} Ver jogos</button></div>`;
+  if (!D.length) return h + `<div class="pn empty"><div class="face">${toFace('ok')}</div><b>Ainda não houve duelos.</b><div class="muted small" style="margin:6px 0 14px">Abre um jogo em «Jogos» ou regista o Boletim seguro. Eu respondo com a minha aposta.</div><button class="btn fill" onclick="go('jogos')">${ic('ball')} Ver jogos</button></div>`;
   h += catH('list', 'Duelos', 'var(--c-blue)');
   h += D.map(d => {
     const g = d.tu.mk === 'multi' ? null : DB.games[d.tu.g] || {};
@@ -486,11 +606,110 @@ function printBets() {
 }
 
 /* ---------- MAIS ---------- */
+function openHelp() {
+  const q = (t, x) => `<div class="pn"><div class="pn-h" style="font-size:1.1rem">${t}</div><div class="small" style="line-height:1.5">${x}</div></div>`;
+  openSheet('O que quer dizer', q('Casa: CLE favorito por 4,5', 'É o <b>handicap</b> da casa de apostas. Apostar «Cavaliers −4,5» só ganha se os Cavaliers ganharem por <b>5 ou mais</b>. Apostar «Grizzlies +4,5» ganha se os Grizzlies ganharem, ou perderem por 4 ou menos.') +
+    q('Total 238,5 pts', 'Soma dos pontos das duas equipas. «Mais de 238,5» ganha com 239 ou mais; «Menos de 238,5» com 238 ou menos. O prolongamento conta.') +
+    q('Vencedor CLE 1,51 / MEM 2,64', 'Odds para quem ganha o jogo (com prolongamento, não há empate). 1 € em CLE a 1,51 devolve 1,51 € se ganhar.') +
+    q('Aposta do Tó · valor +6%', 'O Tó calcula a probabilidade de cada aposta e a <b>odd justa</b> (1 ÷ probabilidade). Se a casa paga mais do que a odd justa, há <b>valor</b>: em 100 apostas assim, ganhas mais do que perdes. Só aparece «Aposta do Tó» quando o valor passa dos ' + pct(CFG.evMin) + '. Se não aparece, o Tó acha que não se deve apostar nesse jogo.') +
+    q('Seguro', 'Seleções que o Tó dá como muito prováveis (85% ou mais). Pagam pouco; juntas num boletim pagam mais mas o risco soma-se.') +
+    q('Confiança e OVR', '<b>Confiança</b> = probabilidade de o favorito ganhar. <b>OVR</b> = nota geral da equipa de 0 a 99 (força na época).') +
+    q('u (unidades)', '1 u = o valor de uma aposta. «+0,91 u» = ganhou 0,91 vezes o que apostou.'));
+}
+
 function viewMais() {
-  const T = [['trophy', 'Classificação', 'openStand()', 'var(--c-yellow)'], ['book', 'Diário do Tó', 'openDiary()', 'var(--c-green)'], ['chip', 'Como pensa o Tó', 'openHow()', 'var(--c-purple)'], ['gear', 'Definições', 'openCfg()', 'var(--c-blue)'], ['save', 'Cópia de segurança', 'openBackup()', 'var(--c-orange)'], ['pulse', 'Testar ligação', 'openNet()', 'var(--c-red)']];
+  const T = [['chart', 'Estatísticas', 'openStats()', 'var(--teal)'], ['star', 'Jogadores', 'openPlayers()', 'var(--c-blue)'], ['trophy', 'Classificação', 'openStand()', 'var(--c-yellow)'], ['chip', 'Como pensa o Tó', 'openHow()', 'var(--c-purple)'], ['info', 'O que quer dizer', 'openHelp()', 'var(--c-green)'], ['gear', 'Definições', 'openCfg()', 'var(--c-blue)'], ['save', 'Cópia de segurança', 'openBackup()', 'var(--c-orange)'], ['pulse', 'Testar ligação', 'openNet()', 'var(--c-red)']];
   if (!isStandalone()) T.push(['phone', 'Instalar app', 'openInstall()', 'var(--teal)']);
-  return `<div class="tiles">${T.map(([i, l, f, k]) => `<div class="tile" style="--k:${k}" onclick="${f}">${ic(i)}<b>${l}</b></div>`).join('')}</div>
+  const ST = statsAll();
+  return `<div class="pn hl" style="cursor:pointer" onclick="openStats()">${pnH(`${ic('chart')} Estatísticas do Tó`, 'tocar para abrir')}
+    ${ST.n ? attr('Vencedor certo', Math.round(ST.win / ST.n * 100), 'var(--c-green)', `${pct(ST.win / ST.n)} (${ST.n})`, 100) + (ST.bn ? attr('Apostas com valor', clamp(50 + ST.bu / ST.bn * 100, 0, 100), ST.bu >= 0 ? 'var(--c-green)' : 'var(--c-red)', `${ST.bw}/${ST.bn} · ${unitsTxt(ST.bu)}`, 100) : '') : '<div class="small muted">Ainda sem jogos previstos e acabados.</div>'}</div>
+   <div class="tiles">${T.map(([i, l, f, k]) => `<div class="tile" style="--k:${k}" onclick="${f}">${ic(i)}<b>${l}</b></div>`).join('')}</div>
    <div class="pn small muted" style="text-align:center">Mister Tó v${APP_VER} · dados da ESPN · simulação, sem dinheiro real<br>© 2026 Júlio Melo</div>`;
+}
+
+function statsAll() {
+  const fin = Object.values(DB.games).filter(g => g.s === 'post' && PREDS[g.id] && g.hs != null);
+  const R = { n: 0, win: 0, eT: 0, eM: 0, eMod: 0, nM: 0, spN: 0, spW: 0, toN: 0, toW: 0, bn: 0, bw: 0, bu: 0, mk: {}, conf: {}, team: {}, rows: [] };
+  fin.forEach(g => {
+    const v = verdict(g); if (!v) return; const p = v.p, act = g.hs - g.as;
+    R.n++; if (v.win) R.win++;
+    R.eT += Math.abs(p.m - act); R.eMod += Math.abs(p.mm - act);
+    if (p.hl != null) { R.nM++; R.eM += Math.abs(-p.hl - act); }
+    if (v.sp != null) { R.spN++; if (v.sp) R.spW++; }
+    if (v.tot != null) { R.toN++; if (v.tot) R.toW++; }
+    const pc = Math.max(p.pH != null ? p.pH : Phi(p.m / SDM), 1 - (p.pH != null ? p.pH : Phi(p.m / SDM)));
+    const b = pc < 0.55 ? '50-55' : pc < 0.6 ? '55-60' : pc < 0.7 ? '60-70' : pc < 0.8 ? '70-80' : '80+';
+    const C = R.conf[b] = R.conf[b] || { n: 0, w: 0, p: 0 }; C.n++; C.p += pc; if (v.win) C.w++;
+    const T = R.team[v.fav] = R.team[v.fav] || { n: 0, w: 0 }; T.n++; if (v.win) T.w++;
+    if (v.pk && (v.pkr === 'won' || v.pkr === 'lost')) {
+      R.bn++; if (v.pkr === 'won') R.bw++; R.bu += v.pku;
+      const K = R.mk[v.pk.mk] = R.mk[v.pk.mk] || { n: 0, w: 0, u: 0 }; K.n++; if (v.pkr === 'won') K.w++; K.u += v.pku;
+    }
+    R.rows.push({ g, v });
+  });
+  return R;
+}
+function wilson(k, n) { if (!n) return [0, 1]; const z = 1.96, p = k / n, d = 1 + z * z / n, c = (p + z * z / (2 * n)) / d, m = z * Math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / d; return [c - m, c + m]; }
+function openStats() {
+  const R = statsAll(), M = getModel(), ss = safeStats(), ps = propStats();
+  if (!R.n && !ss && !ps) return openSheet('Estatísticas', `<div class="pn empty"><div class="face">${toFace('ok')}</div>As estatísticas enchem-se sozinhas: o Tó guarda a previsão e a aposta de cada jogo antes de começar, e compara com o resultado. Toca em ↻ todos os dias antes dos jogos.</div>`);
+  const sl = Object.values(SLIPS).map(slipResult).filter(x => x && x.st !== 'open');
+  const slW = sl.filter(x => x.st === 'won').length;
+  const pm = (k, n) => { const [a, b] = wilson(k, n); return `${pct(k / n)} <small>(${Math.round(a * 100)}–${Math.round(b * 100)}%)</small>`; };
+  let h = catH('target', 'Previsões', 'var(--c-green)', R.n + ' jogos') +
+    attr('Vencedor certo', Math.round(R.win / R.n * 100), 'var(--c-green)', pm(R.win, R.n), 100) +
+    (R.spN ? attr('Lado certo no handicap (precisa 52,4%)', Math.round(R.spW / R.spN * 100), 'var(--c-blue)', pm(R.spW, R.spN), 100) : '') +
+    (R.toN ? attr('Lado certo no total (precisa 52,4%)', Math.round(R.toW / R.toN * 100), 'var(--c-yellow)', pm(R.toW, R.toN), 100) : '');
+  h += catH('gem', 'Apostas do Tó (valor)', 'var(--c-orange)', R.bn ? `${R.bw}/${R.bn} · <b class="${R.bu >= 0 ? 'pos' : 'neg'}">${unitsTxt(R.bu)}</b> · ROI ${sPct(R.bn ? R.bu / R.bn : 0)}` : 'ainda nenhuma') +
+    ['ml', 'sp', 'tot'].filter(k => R.mk[k]).map(k => { const K = R.mk[k]; return `<div class="why"><span>${mkName(k)}</span><b>${K.w}/${K.n} · <span class="${K.u >= 0 ? 'pos' : 'neg'}">${unitsTxt(K.u)}</span></b></div>`; }).join('');
+  h += catH('shield', 'Seguro e jogadores', 'var(--teal)') +
+    (ss ? attr('Seleções seguras', Math.round(ss.w / ss.n * 100), 'var(--teal)', `${ss.w}/${ss.n} · prometia ${pct(ss.p)}`, 100) : '') +
+    (sl.length ? attr('Boletins seguros inteiros', Math.round(slW / sl.length * 100), 'var(--teal)', `${slW}/${sl.length}`, 100) : '') +
+    (ps ? attr('Linhas de jogadores', Math.round(ps.w / ps.n * 100), 'var(--c-blue)', `${ps.w}/${ps.n} · prometia ${pct(ps.p)}`, 100) : '') +
+    (!ss && !sl.length && !ps ? '<div class="small muted">Ainda sem resultados.</div>' : '');
+  h += catH('chip', 'Quando o Tó diz X%, acontece…', 'var(--c-purple)') + `<table class="tbl"><tr><th>Confiança</th><th>Jogos</th><th>Tó dizia</th><th>Aconteceu</th></tr>` +
+    ['50-55', '55-60', '60-70', '70-80', '80+'].filter(b => R.conf[b]).map(b => { const C = R.conf[b]; return `<tr><td>${b}%</td><td>${C.n}</td><td>${pct(C.p / C.n)}</td><td class="${Math.abs(C.w / C.n - C.p / C.n) < 0.08 ? 'pos' : 'neg'}">${pct(C.w / C.n)}</td></tr>`; }).join('') + `</table><div class="small muted" style="margin:4px 0">Verde = bate certo (dentro de 8 pontos). Com poucos jogos é normal haver diferenças.</div>`;
+  const avgW = R.n ? R.win / R.n : 0.5;
+  const TM = Object.entries(R.team).filter(([, T]) => T.n >= 5).map(([id, T]) => ({ id, T, r: T.w / T.n, ci: wilson(T.w, T.n) })).sort((a, b) => b.r - a.r);
+  if (TM.length >= 4) {
+    const tag = x => x.ci[0] > avgW ? '<span class="tg" style="--k:var(--pos)">real</span>' : x.ci[1] < avgW ? '<span class="tg" style="--k:var(--neg)">real</span>' : '<span class="tg">pode ser sorte</span>';
+    h += catH('fire', 'Onde o Tó está quente / frio', 'var(--c-red)', 'quando dá a equipa como favorita') +
+      TM.slice(0, 3).map(x => `<div class="why"><span>🔥 ${esc(tName(x.id))} ${tag(x)}</span><b>${x.T.w}/${x.T.n}</b></div>`).join('') +
+      TM.slice(-3).reverse().map(x => `<div class="why"><span>❄️ ${esc(tName(x.id))} ${tag(x)}</span><b>${x.T.w}/${x.T.n}</b></div>`).join('') +
+      `<div class="small muted">«Real» só quando a margem de sorte não chega à média do Tó (${pct(avgW)}).</div>`;
+  }
+  h += catH('chart', 'Tó contra a casa', 'var(--c-blue)', 'erro médio na diferença') +
+    `<div class="why"><span>Tó (final)</span><b>${f1(R.eT / Math.max(1, R.n))} pts</b></div><div class="why"><span>Só o modelo do Tó</span><b>${f1(R.eMod / Math.max(1, R.n))} pts</b></div>${R.nM ? `<div class="why"><span>Casa de apostas</span><b>${f1(R.eM / R.nM)} pts</b></div>` : ''}<div class="why"><span>Peso que o Tó dá à casa (aprendido)</span><b>${pct(M.cal.m.w)} · total ${pct(M.cal.t.w)}</b></div>`;
+  h += catH('wallet', 'Contas', 'var(--c-yellow)') + ['tu', 'to', 'pi'].map(k => { const s = accStats(k); return `<div class="why"><span>${ACC[k].n}</span><b class="${s.profit >= 0 ? 'pos' : 'neg'}">${sEur(s.profit)} · ROI ${sPct(s.roi)} · ${s.w}/${s.w + s.l}</b></div>`; }).join('');
+  h += `<div class="row" style="margin-top:12px"><button class="btn go full" onclick="exportPreds()">${ic('download')} Exportar previsões (Excel)</button></div>
+   <div class="pn small muted">Os números entre parênteses são a margem de sorte (95%). Enquanto 52,4% estiver dentro dela, ainda não se sabe se o Tó bate a casa ou teve sorte. Tudo foi guardado antes de cada jogo começar.</div>`;
+  openSheet('Estatísticas', h);
+}
+function exportPreds() {
+  const f = v => String(v == null ? '' : v).replace('.', ',');
+  const rows = [['dia', 'casa', 'fora', 'resultado', 'tó_diferença', 'tó_total', 'tó_prob_casa', 'linha_casa', 'total_casa', 'vencedor_certo', 'handicap_certo', 'total_certo', 'aposta_tó', 'odd', 'resultado_aposta', 'unidades']];
+  statsAll().rows.forEach(({ g, v }) => rows.push([g.ed, tName(g.h), tName(g.a), g.hs + '-' + g.as, f(v.p.m), f(v.p.t), f(v.p.pH), f(v.p.hl), f(v.p.tl), v.win ? 1 : 0, v.sp == null ? '' : v.sp ? 1 : 0, v.tot == null ? '' : v.tot ? 1 : 0, v.pk ? v.pk.lb : '', v.pk ? f(v.pk.odd) : '', v.pk ? v.pkr : '', v.pk ? f(r2(v.pku)) : '']));
+  const csv = '﻿' + rows.map(r => r.map(x => /[;"\n]/.test(String(x)) ? '"' + String(x).replace(/"/g, '""') + '"' : x).join(';')).join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = 'mister-to-previsoes-' + todayET() + '.csv'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+
+function openPlayers() {
+  const left = studyLeft(), n = Object.keys(PL.p).length, seen = Object.keys(PL.seen).length;
+  const top = Object.values(PL.p).filter(P => P.g.length >= 3).map(P => ({ P, s: pStats(P), imp: impactOf(P) })).sort((a, b) => b.imp - a.imp).slice(0, 30);
+  openSheet('Jogadores', `<div class="pn"><div class="small">Estudados <b>${seen}</b> jogos · <b>${n}</b> jogadores · faltam <b>${left}</b> jogos.</div>
+    ${left ? `<button class="btn fill full" style="margin-top:10px" id="stBtn" onclick="studyAll(this)">${ic('download')} Estudar tudo (${left} jogos · ~${Math.max(1, Math.round(left * 0.15))} MB)</button><div class="small muted" style="margin-top:6px">Melhor com Wi-Fi. Pode demorar ${Math.max(1, Math.round(left * 0.4 / 60))} min. Também estuda 25 jogos em cada ↻.</div>` : ''}</div>
+    ${top.length ? catH('star', 'Peças-chave da liga', 'var(--c-blue)', 'quanto vale cada um (pts de diferença)') + `<table class="tbl"><tr><th>Jogador</th><th>Pts</th><th>Res</th><th>Ast</th><th>Vale</th></tr>${top.map(x => `<tr><td style="text-align:left">${esc(x.P.n)}<div class="small muted">${esc(tAb(x.P.t))} · ${x.s.gp} j · ${Math.round(x.s.min)} min</div></td><td>${x.s.pts.toFixed(1).replace('.', ',')}</td><td>${x.s.reb.toFixed(1).replace('.', ',')}</td><td>${x.s.ast.toFixed(1).replace('.', ',')}</td><td><b>${f1(x.imp)}</b></td></tr>`).join('')}</table><div class="small muted" style="margin-top:6px">«Vale» = quantos pontos a equipa perde, em média, quando ele falta.</div>` : ''}`);
+}
+async function studyAll(btn) {
+  btn.disabled = true;
+  let tot = 0;
+  for (let i = 0; i < 40; i++) {
+    const left = studyLeft(); if (!left) break;
+    const r = await studyGames(30, false, (k, n) => { btn.textContent = `A estudar… faltam ${Math.max(0, left - k)}`; });
+    tot += r.fin; if (!r.fin) break;
+  }
+  propGrade(); MODEL = null; toast(`✓ ${tot} jogos estudados`); openPlayers(); render();
 }
 let CONFV = 'E';
 function openStand() {
@@ -503,34 +722,6 @@ function openStand() {
    </table><div class="small muted" style="margin-top:6px">Feita pelo Tó com os resultados guardados. OVR = nota geral da equipa (0–99).</div>`;
   openSheet('Classificação', ts.length ? h : '<p class="muted">Toca primeiro em ↻.</p>');
 }
-function openDiary() {
-  const fin = Object.values(DB.games).filter(g => g.s === 'post' && PREDS[g.id] && g.hs != null);
-  let n = 0, win = 0, eT = 0, eM = 0, eMod = 0, nM = 0, spN = 0, spW = 0, toN = 0, toW = 0, vk = 0, vw = 0;
-  fin.forEach(g => {
-    const p = PREDS[g.id], act = g.hs - g.as, tot = g.hs + g.as;
-    n++; if (Math.sign(p.m) === Math.sign(act)) win++;
-    eT += Math.abs(p.m - act); eMod += Math.abs(p.mm - act);
-    if (p.hl != null) { nM++; eM += Math.abs(-p.hl - act); const side = Math.sign(p.m + p.hl), r = Math.sign(act + p.hl); if (side && r) { spN++; if (side === r) spW++; } }
-    if (p.tl != null) { const side = Math.sign(p.t - p.tl), r = Math.sign(tot - p.tl); if (side && r) { toN++; if (side === r) toW++; } }
-    if (p.pk) { const o = outcome({ mk: p.pk.mk, sel: p.pk.sel, line: p.pk.line }, g); if (o === 'won' || o === 'lost') { vk++; if (o === 'won') vw++; } }
-  });
-  const f1 = x => x.toFixed(1).replace('.', ',');
-  const pm = (k, nn) => nn ? `${pct(k / nn)} <span class="muted small">±${Math.round(196 * Math.sqrt((k / nn) * (1 - k / nn) / nn))}</span>` : '—';
-  const C = getModel().cal, pi = accStats('pi'), ss = safeStats();
-  const h = n ? catH('target', 'Acertos', 'var(--c-green)', n + ' jogos') +
-    attr('Acertou no vencedor', Math.round(win / n * 100), 'var(--c-green)', pct(win / n), 100) +
-    (spN ? attr('Lado certo no handicap', Math.round(spW / spN * 100), 'var(--c-blue)', pm(spW, spN), 100) : '') +
-    (toN ? attr('Lado certo no total', Math.round(toW / toN * 100), 'var(--c-yellow)', pm(toW, toN), 100) : '') +
-    (vk ? attr('Apostas com valor que acertou', Math.round(vw / vk * 100), 'var(--c-orange)', `${vw}/${vk}`, 100) : '') +
-    (ss ? attr('Boletim seguro (seleções)', Math.round(ss.w / ss.n * 100), 'var(--teal)', `${ss.w}/${ss.n} · prometia ${pct(ss.p)}`, 100) : '') +
-    catH('chart', 'Erro médio (pontos)', 'var(--c-purple)') +
-    `<div class="why"><span>Tó final</span><b>${f1(eT / n)}</b></div><div class="why"><span>Só o modelo do Tó</span><b>${f1(eMod / n)}</b></div>${nM ? `<div class="why"><span>Casa de apostas</span><b>${f1(eM / nM)}</b></div>` : ''}
-    <div class="why"><span>Peso que o Tó dá à casa (aprendido)</span><b>${pct(C.m.w)} · total ${pct(C.t.w)}</b></div>
-    <div class="why" style="border:0"><span>Piloto automático</span><b class="${pi.profit >= 0 ? 'pos' : 'neg'}">${sEur(pi.profit)} · ROI ${sPct(pi.roi)}</b></div>
-    <div class="pn small muted">Para bater as casas no handicap/total é preciso acertar mais de 52,4% (odd 1,91). O «±» é a margem de sorte: enquanto 52,4% estiver lá dentro, ainda não se sabe se o Tó é bom ou teve sorte. Se o modelo errar mais do que a casa, o Tó baixa sozinho o peso que dá a si próprio.</div>`
-    : `<div class="pn empty"><div class="face">${toFace('ok')}</div>O diário enche-se sozinho: o Tó guarda a previsão de cada jogo antes de começar e compara com o resultado. Vai tocando em ↻ todos os dias.</div>`;
-  openSheet('Diário do Tó', h);
-}
 function openHow() {
   const M = getModel();
   openSheet('Como pensa o Tó', `<div class="pn" style="line-height:1.5">
@@ -538,7 +729,7 @@ function openHow() {
    ${catH('court', '2. Casa e fora', 'var(--c-orange)')}<p>Na NBA quem joga em casa ganha, em média, <b>${M.HCA.toFixed(1).replace('.', ',')} pts</b> (${M.n} jogos desta época). No basket isto pesa muito menos do que no futebol: a diferença varia ±12 pts de jogo para jogo e o fator casa é quase igual em todas as equipas. O Tó mede o de cada uma, mas trava-o (máx. ±1,5 pts).</p>
    ${catH('clock', '3. Cansaço', 'var(--c-red)')}<p>Quem jogou na véspera perde cerca de 1,4 pts.</p>
    ${catH('coins', '4. Mercado', 'var(--c-yellow)')}<p>Junta a opinião dele com a linha da casa de apostas. Começa com ${pct(CFG.mktW)} de peso na casa e depois <b>aprende sozinho</b> com as previsões que guardou antes de cada jogo. Peso atual: <b>${pct(M.cal.m.w)}</b>.</p>
-   ${catH('bandage', '5. Ausências', 'var(--c-purple)')}<p>As baixas que marcas na ficha do jogo contam por inteiro.</p>
+   ${catH('bandage', '5. Ausências', 'var(--c-purple)')}<p>As lesões da ESPN (lidas a cada ↻) entram no modelo do Tó com o valor de cada jogador; quem já falhou os últimos jogos quase não conta. As baixas de última hora que marcas tu contam por inteiro.</p>
    ${catH('gem', '6. Valor e seguro', 'var(--c-green)')}<p><b>Valor:</b> a odd paga pelo menos ${pct(CFG.evMin)} acima do justo. <b>Seguro:</b> seleções com ${pct(SAFE_LEG)} ou mais, juntas enquanto o boletim passa dos ${pct(SAFE_SLIP)}.</p>
    <p class="small muted">Contas: <b>Tu</b> apostas o que quiseres e o Tó dá opinião; <b>Mister Tó</b> responde a cada aposta tua com a dele (duelo); <b>Piloto</b> aposta sozinho ${eur(CFG.piStake)} em cada «valor» e no boletim seguro da noite.</p></div>`);
 }
@@ -599,7 +790,7 @@ async function netTest(btn) {
 let DEFER_INSTALL = null;
 const isStandalone = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
 const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); DEFER_INSTALL = e; if (VIEW === 'hoje' || VIEW === 'mais') render(); });
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); DEFER_INSTALL = e; if (VIEW === 'inicio' || VIEW === 'mais') render(); });
 window.addEventListener('appinstalled', () => { DEFER_INSTALL = null; LS.set('instHide', 1); toast('Mister Tó instalado! Já está no teu ecrã.'); render(); });
 function installBanner() {
   if (isStandalone() || LS.get('instHide', 0)) return '';
@@ -623,7 +814,7 @@ function openInstall() {
 $('#topFace').innerHTML = toFace('ok');
 $('#btnRefresh').innerHTML = ic('refresh');
 document.querySelectorAll('[data-ic]').forEach(el => { el.outerHTML = ic(el.dataset.ic); });
-window.addEventListener('hashchange', () => { const v = location.hash.slice(1); if (['hoje', 'duelo', 'contas', 'mais'].includes(v) && v !== VIEW) { VIEW = v; render(); } });
+window.addEventListener('hashchange', () => { let v = location.hash.slice(1); if (v === 'hoje') v = 'jogos'; if (VIEWS.includes(v) && v !== VIEW) { VIEW = v; render(); } });
 settleAll();
 render();
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});

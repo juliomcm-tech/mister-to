@@ -5,7 +5,7 @@
    Dados: ESPN (grátis, sem token). Só vai à internet quando carregas em 🔄.
    Tudo fica guardado no telemóvel (localStorage, chaves «to_…»).
    ===================================================================== */
-const APP_VER = '2.1.0';
+const APP_VER = '3.0.0';
 
 /* ---------- utilitários ---------- */
 const $ = s => document.querySelector(s);
@@ -189,12 +189,17 @@ async function refresh() {
     }
     saveDB();
     MODEL = null;
+    // jogadores (jogos acabados ainda por estudar) + lesões dos jogos de hoje e amanhã
+    let stu = { fin: 0, inj: 0 };
+    try { stu = await studyGames(25, true, (k, n) => setUpd(`⏳ Jogadores e lesões ${k}/${n}…`)); } catch (e) {}
     snapshotPreds();
+    snapshotSlips();
     const sett = settleAll();
+    propGrade();
     const pil = pilotRun();
     LS.set('last', Date.now());
     const n = Object.keys(DB.games).length;
-    toast(fails && !n ? '❌ Sem ligação à ESPN. Experimenta «Testar ligação» no Mais.' : `✅ ${n} jogos na memória${sett ? ` · ${sett} apostas fechadas` : ''}${pil ? ` · 🤖 piloto fez ${pil}` : ''}`, 3800);
+    toast(fails && !n ? 'Sem ligação à ESPN. Experimenta «Testar ligação» no Mais.' : `✓ ${n} jogos${stu.inj ? ` · lesões de ${stu.inj} jogos` : ''}${stu.fin ? ` · ${stu.fin} jogos estudados` : ''}${sett ? ` · ${sett} apostas fechadas` : ''}${pil ? ` · piloto fez ${pil}` : ''}`, 4200);
   } catch (e) {
     toast('❌ Falhou: ' + esc(e.message || e));
   } finally {
@@ -305,6 +310,10 @@ function predict(g) {
   let restAdj = 0;
   if (rh === 1) { Eh -= 0.8; Ea += 0.6; restAdj -= 1.4; }
   if (ra === 1) { Ea -= 0.8; Eh += 0.6; restAdj += 1.4; }
+  // lesões da ESPN: só no modelo (a casa já as conhece), só a parte que a equipa ainda não absorveu
+  const ij = (typeof injInfo === 'function') ? injInfo(g) : { h: 0, a: 0, list: { h: [], a: [] } };
+  Eh -= 0.6 * ij.h; Ea += 0.4 * ij.h; Ea -= 0.6 * ij.a; Eh += 0.4 * ij.a;
+  const injAdj = -ij.h + ij.a;
   const mModel = Eh - Ea, tModel = Eh + Ea;
   const gpMin = Math.min(M.gp(h), M.gp(a));
   const hasM = o.hl != null, hasT = o.tl != null;
@@ -316,12 +325,13 @@ function predict(g) {
   const ab = ABS[g.id] || { h: 0, a: 0 };
   const absAdj = -(ab.h || 0) + (ab.a || 0);
   m += absAdj; t -= 0.25 * ((ab.h || 0) + (ab.a || 0));
-  const P = { g, Eh, Ea, mModel, tModel, m, t, W: hasM ? W : 0, Wt: hasT ? Wt : 0, ph: (t + m) / 2, pa: (t - m) / 2, pH: Phi(m / SDM), rh, ra, restAdj, absAdj, gpMin };
+  const P = { g, Eh, Ea, mModel, tModel, m, t, W: hasM ? W : 0, Wt: hasT ? Wt : 0, ph: (t + m) / 2, pa: (t - m) / 2, pH: Phi(m / SDM), rh, ra, restAdj, absAdj, injAdj, inj: ij, gpMin };
   P.reasons = [
     ['Força na época (ataque e defesa)', M.net(h) - M.net(a)],
     ['Vantagem de jogar em casa (média da liga)', M.HCA],
     ['Fator casa/fora destas duas equipas', spT],
-    ['Cansaço (jogou na véspera)', restAdj]
+    ['Cansaço (jogou na véspera)', restAdj],
+    ['Lesões da ESPN (só no modelo)', injAdj]
   ];
   P.cands = candidates(g, P);
   const elig = P.cands.filter(c => c.odd >= CFG.oddMin && c.odd <= CFG.oddMax && !c.sus).sort((x, y) => y.ev - x.ev);
@@ -367,7 +377,7 @@ function snapshotPreds() {
     if (!gValid(g) || g.s !== 'pre' || new Date(g.d).getTime() < now - 6e5) return;
     if (ymdDiff(todayET(), g.ed) > 2) return;
     const P = predict(g);
-    PREDS[g.id] = { m: r2(P.m), t: r2(P.t), mm: r2(P.mModel), tm: r2(P.tModel), hl: g.o && g.o.hl, tl: g.o && g.o.tl, pk: P.value ? { mk: P.value.mk, sel: P.value.sel, line: P.value.line, odd: P.value.odd, ev: r2(P.value.ev) } : null, ts: now };
+    PREDS[g.id] = { m: r2(P.m), t: r2(P.t), mm: r2(P.mModel), tm: r2(P.tModel), pH: r2(P.pH), hl: g.o && g.o.hl, tl: g.o && g.o.tl, ed: g.ed, pk: P.value ? { mk: P.value.mk, sel: P.value.sel, line: P.value.line, odd: P.value.odd, ev: r2(P.value.ev), p: r2(P.value.p), der: !!P.value.der, lb: selLabel(g, P.value.mk, P.value.sel, P.value.line) } : null, ts: now };
   });
   // limpeza: só os últimos 600
   const ks = Object.keys(PREDS); if (ks.length > 600) ks.sort((a, b) => PREDS[a].ts - PREDS[b].ts).slice(0, ks.length - 600).forEach(k => delete PREDS[k]);
