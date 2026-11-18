@@ -5,7 +5,7 @@
    Dados: ESPN (grátis, sem token). Só vai à internet quando carregas em 🔄.
    Tudo fica guardado no telemóvel (localStorage, chaves «to_…»).
    ===================================================================== */
-const APP_VER = '2.0.0';
+const APP_VER = '2.1.0';
 
 /* ---------- utilitários ---------- */
 const $ = s => document.querySelector(s);
