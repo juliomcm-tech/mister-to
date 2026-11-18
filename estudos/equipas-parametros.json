@@ -1,0 +1,89 @@
+{
+ "_source": "Walk-forward validation on NBA regular seasons 2015-16..2025-26 (closing lines from kyleskom/NBA-Machine-Learning-Sports-Betting OddsData.sqlite). Tuned on 2015-16..2023-24, confirmed on 2024-25 and 2025-26 (partial).",
+ "_summary": "Keep the core (KPRIOR, HALF). Changes are small accuracy gains; none creates a betting edge versus closing lines.",
+ "SDM": {
+  "current": 12,
+  "recommended": 13,
+  "evidence": "Residual SD of margin vs closing spread = 12.9 (2015-26) and 13.2-13.6 since 2023-24; alt spread built at market-86% with SD 12 hits only 83-85% in 2023-26 (SD 13: 85.4-85.8%). Moneyline log-loss is flat between 12 and 13 (diff < 0.001)."
+ },
+ "SDT": {
+  "current": 18,
+  "recommended": 18,
+  "evidence": "Residual SD of total vs closing total = 18.3 (17.8 since 2022-23); alt total at market-86% with SD 18 hits 85.9%. Keep."
+ },
+ "KPRIOR": {
+  "current": 8,
+  "recommended": 8,
+  "evidence": "Best of {4,8,12,16,24,32} on tune seasons (model-only margin MAE 10.31 with carry-over); confirmed on 2024-25."
+ },
+ "HALF": {
+  "current": 20,
+  "recommended": 20,
+  "evidence": "Best or tied-best of {10,15,20,30,45,none} with KPRIOR=8 (differences <= 0.01 pts)."
+ },
+ "CARRY_PRIOR": {
+  "current": 0.0,
+  "recommended": 0.5,
+  "evidence": "Start each season from previous-season off/def ratings x0.5 as the prior (weight KPRIOR). Model-only margin MAE 10.40->10.31 (tune), 11.10->10.98 (2024-25), 11.00->10.82 (2025-26). 0.3/0.7 slightly worse or equal. Needs last season's ratings stored."
+ },
+ "KSPLIT": {
+  "current": 60,
+  "recommended": 200,
+  "evidence": "Team-specific home/away advantage is almost pure noise: first-half vs second-half correlation r=0.08 (360 team-seasons), year-to-year r=0.08; true SD ~0.6 pt -> optimal shrinkage ~220 pseudo-games. Backtest differences between 60/120/240/off are <= 0.02 pts MAE (noise). Removing it entirely is equally fine."
+ },
+ "SPCAP": {
+  "current": 1.5,
+  "recommended": 1.0,
+  "evidence": "With true SD ~0.6 pt a +-1.5 cap is never justified; 1.0 limits damage from noise."
+ },
+ "B2B_OWN": {
+  "current": -0.8,
+  "recommended": -1.3,
+  "evidence": "Walk-forward residuals without any b2b term (3,300 single-b2b games): tired team scores ~1.3 pts below expectation and the opponent ~0.9 above (after removing the general bias), margin effect -2.2 +-0.23 pts vs the -1.4 now used."
+ },
+ "B2B_OPP": {
+  "current": 0.6,
+  "recommended": 1.0,
+  "evidence": "See B2B_OWN. Backtest model MAE best at -1.3/+1.0 to -1.5/+1.2 (tune and 2024-25)."
+ },
+ "HCA0": {
+  "current": 2.3,
+  "recommended": 2.0,
+  "evidence": "League home advantage (opponent-adjusted): 2.1-3.2 in 2014-19, 0.9 (2020-21, no fans), 1.6-2.5 since 2021-22; market-implied 1.8-2.3 since 2021-22. Barely matters (prior of 300 games)."
+ },
+ "MKTW": {
+  "current": 0.75,
+  "recommended": 0.9,
+  "evidence": "Hindsight least-squares weight on the closing spread = 0.90; the market alone (MAE 10.008) beats every blend on tune seasons (To 10.022). In-season learned W hovers 0.75-0.97 and is noisy early."
+ },
+ "WMIN": {
+  "current": 0.5,
+  "recommended": 0.8,
+  "evidence": "Early-season learned W dropped as low as 0.50-0.60 (2022-23, 2025-26) purely from noise, when the model is at its worst."
+ },
+ "MKTW_TOTAL": {
+  "current": 0.75,
+  "recommended": 0.95,
+  "evidence": "Hindsight weight on the closing total = 0.98; model-only total MAE is 0.4-0.7 pts worse than the market every season. Requires a separate prior for totals in calibW."
+ },
+ "WMIN_TOTAL": {
+  "current": 0.5,
+  "recommended": 0.85,
+  "evidence": "Learned totals W fell to 0.50-0.61 in 2020-22 although the model never beat the market on totals."
+ },
+ "EV_MIN": {
+  "current": 0.05,
+  "recommended": "no change in value; label as entertainment",
+  "evidence": "Value bets at EV>=3/5/8/10% all have ROI CIs that include 0 (EV>=5%: n=1281, ROI -1.7% [-8.6, +5.2]); EV>=10% is significantly negative (-14.5% [-27, -2]) driven by moneyline longshots."
+ },
+ "ML_PROBABILITY": {
+  "current": "Phi(m/SDM)",
+  "recommended": "no-vig moneyline probability shifted by the model's lean, or exclude ML from value picks",
+  "evidence": "On ML value picks the actual win rate matched the no-vig ML price (e.g. odds 3.0-4.0: 27.5% actual vs 27.6% no-vig vs 31.5% promised by To). The normal spread->ML conversion disagrees with ML prices by >4pp in 24% of games (the 'sus' check)."
+ },
+ "SAFE_LEG": {
+  "current": 0.85,
+  "recommended": 0.85,
+  "evidence": "Legs hit 87.1% vs 87.7% promised (n=3,492), slips 75.2% vs 76.1% (n=1,678). Calibrated but no better than the market's own 86%."
+ }
+}

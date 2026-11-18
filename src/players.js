@@ -63,7 +63,7 @@ async function studyGames(maxFin, withInj, prog) {
   if (STUDY_BUSY) return { fin: 0, inj: 0 };
   STUDY_BUSY = true;
   const now = Date.now(), T = todayET();
-  const fin = Object.values(DB.games).filter(g => gValid(g) && g.s === 'post' && !PL.seen[g.id]).sort((a, b) => a.d < b.d ? 1 : -1).slice(0, maxFin);
+  const cs = CUR_SY(), fin = Object.values(DB.games).filter(g => gValid(g) && g.s === 'post' && !PL.seen[g.id] && seasonOf(g.ed) === cs).sort((a, b) => a.d < b.d ? 1 : -1).slice(0, maxFin);
   const pre = withInj ? Object.values(DB.games).filter(g => gValid(g) && g.s === 'pre' && (g.ed === T || g.ed === ymdAdd(T, 1)) && new Date(g.d).getTime() > now - 3600e3) : [];
   let nf = 0, ni = 0, k = 0; const tot = fin.length + pre.length;
   try {
@@ -81,7 +81,7 @@ async function studyGames(maxFin, withInj, prog) {
   }
   return { fin: nf, inj: ni };
 }
-const studyLeft = () => Object.values(DB.games).filter(g => gValid(g) && g.s === 'post' && !PL.seen[g.id]).length;
+const studyLeft = () => { const cs = CUR_SY(); return Object.values(DB.games).filter(g => gValid(g) && g.s === 'post' && !PL.seen[g.id] && seasonOf(g.ed) === cs).length; };
 
 /* ---------- números de cada jogador ---------- */
 const wAvg = (G, i, half) => { let s = 0, w = 0; G.forEach((x, k) => { const ww = Math.pow(0.5, (G.length - 1 - k) / half); s += ww * x[i]; w += ww; }); return w ? s / w : 0; };

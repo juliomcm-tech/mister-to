@@ -5,7 +5,7 @@
    Dados: ESPN (grátis, sem token). Só vai à internet quando carregas em 🔄.
    Tudo fica guardado no telemóvel (localStorage, chaves «to_…»).
    ===================================================================== */
-const APP_VER = '3.1.0';
+const APP_VER = '3.2.0';
 
 /* ---------- utilitários ---------- */
 const $ = s => document.querySelector(s);
@@ -46,6 +46,9 @@ const ymdDiff = (a, b) => Math.round((Date.UTC(+b.slice(0, 4), +b.slice(4, 6) - 
 const hhmm = iso => new Date(iso).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' });
 const dayLbl = iso => new Date(iso).toLocaleDateString('pt-PT', { weekday: 'short', day: '2-digit', month: '2-digit' }).replace('.', '');
 const todayET = () => etYmd(new Date());
+/* época NBA de um dia (out–jun): 2026-27 → 2027 */
+const seasonOf = ed => { const y = +ed.slice(0, 4), m = +ed.slice(4, 6); return m >= 8 ? y + 1 : y; };
+const CUR_SY = () => seasonOf(todayET());
 
 /* ---------- as 30 equipas (conferência + nome curto de reserva) ---------- */
 const EAST = ['ATL', 'BOS', 'BKN', 'CHA', 'CHI', 'CLE', 'DET', 'IND', 'MIA', 'MIL', 'NY', 'NYK', 'ORL', 'PHI', 'TOR', 'WSH', 'WAS'];
@@ -58,9 +61,9 @@ let BETS = LS.get('bets', []);
 let PREDS = LS.get('preds', {});
 let ABS = LS.get('abs', {});
 let DEPOS = LS.get('depos', []);
-const CFG_DEF = { bank: { tu: 100, to: 100, pi: 250 }, min: 0.25, piOn: true, piStake: 2.5, evMin: 0.05, mktW: 0.75, oddMin: 1.30, oddMax: 4.00 };
+const CFG_DEF = { bank: { tu: 100, to: 100, pi: 250 }, min: 0.25, piOn: true, piStake: 2.5, evMin: 0.05, mktW: 0.90, mktWt: 0.95, oddMin: 1.30, oddMax: 4.00 };
 let CFG = Object.assign({}, CFG_DEF, LS.get('cfg', {}));
-if (!CFG.v2) { CFG.mktW = 0.75; CFG.v2 = 1; }
+if (!CFG.v3) { CFG.mktW = 0.90; CFG.mktWt = 0.95; CFG.v3 = 1; CFG.v2 = 1; }   // v3: teste às cegas em 11 épocas reais → mais peso na casa
 CFG.bank = Object.assign({}, CFG_DEF.bank, CFG.bank || {});
 const saveDB = () => LS.set('db', DB);
 const saveBets = () => LS.set('bets', BETS);
@@ -171,6 +174,8 @@ async function refresh() {
   const sy = mo >= 8 ? y : y - 1;                                  // a época começa em outubro
   const months = []; for (let d = new Date(Date.UTC(sy, 9, 1)); d <= new Date(Date.UTC(y, mo - 1, 1)); d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1))) months.push(d.toISOString().slice(0, 7).replace('-', ''));
   const tom = ymdAdd(T, 1); if (!months.includes(tom.slice(0, 6))) months.push(tom.slice(0, 6));
+  // época anterior (out–jun), só uma vez: o Tó parte das forças de lá (teste às cegas: erro menor no início da época)
+  for (let d = new Date(Date.UTC(sy - 1, 9, 1)); d <= new Date(Date.UTC(sy, 5, 1)); d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1))) months.unshift(d.toISOString().slice(0, 7).replace('-', ''));
   let fails = 0;
   try {
     for (const ym of months) {
@@ -220,21 +225,16 @@ async function refresh() {
    → com o ruído de um jogo, a média de uma equipa fica «meio fiável»
      ao fim de ~6-8 jogos (KPRIOR). O fator casa/fora próprio de cada
      equipa varia só ±1 pt e precisava de >100 jogos: fica muito travado.
-   O peso da casa de apostas começa em 75% e o Tó aprende-o sozinho
-   com as previsões que guardou antes de cada jogo (calibW).
+   O peso da casa de apostas começa em 90% (diferença) / 95% (total) e o
+   Tó afina-o com as previsões que guardou antes de cada jogo (calibW).
+   Teste às cegas em 11 épocas reais (2014-26, linhas de fecho): o Tó está
+   bem calibrado mas NÃO bate a linha de fecho; daí os valores abaixo.
    ===================================================================== */
-const SDM = 12, SDT = 18, HALF = 20, KPRIOR = 8, KSPLIT = 60, HCA0 = 2.3;
+const SDM = 13, SDT = 18, HALF = 20, KPRIOR = 8, KSPLIT = 200, SPCAP = 1.0, HCA0 = 2.0, CARRY = 0.5, B2B_OWN = 1.3, B2B_OPP = 1.0;
 let MODEL = null;
 const gValid = g => g && DB.teams[g.h] && DB.teams[g.a];
-function buildModel() {
-  const all = Object.values(DB.games).filter(gValid).sort((x, y) => x.d < y.d ? -1 : 1);
-  const fin = all.filter(g => g.s === 'post' && g.hs != null && g.as != null);
-  const n = fin.length;
-  let L = 114, HCA = HCA0;
-  if (n) {
-    const l = fin.reduce((s, g) => s + g.hs + g.as, 0) / (2 * n), ho = fin.reduce((s, g) => s + g.hs - g.as, 0) / n;
-    L = (n * l + 60 * 114) / (n + 60); HCA = (n * ho + 300 * HCA0) / (n + 300);
-  }
+/* forças ataque/defesa (iterativo, corrigido pelos adversários); prior = época anterior × CARRY */
+function fitRatings(fin, L, HCA, pOff, pDef) {
   const byT = {}; fin.forEach(g => { (byT[g.h] = byT[g.h] || []).push(g); (byT[g.a] = byT[g.a] || []).push(g); });
   const W = {}; for (const t in byT) { const a = byT[t]; a.forEach((g, i) => { W[t + '|' + g.id] = Math.pow(0.5, (a.length - 1 - i) / HALF); }); }
   let off = {}, def = {};
@@ -246,10 +246,24 @@ function buildModel() {
         const w = W[t + '|' + g.id], home = g.h === t, o = home ? g.a : g.h, pf = home ? g.hs : g.as, pa = home ? g.as : g.hs, hb = home ? HCA / 2 : -HCA / 2;
         so += w * (pf - (L + hb + (def[o] || 0))); sd += w * (pa - (L - hb + (off[o] || 0))); sw += w;
       }
-      no[t] = so / (sw + KPRIOR); nd[t] = sd / (sw + KPRIOR);
+      no[t] = (so + KPRIOR * CARRY * ((pOff && pOff[t]) || 0)) / (sw + KPRIOR); nd[t] = (sd + KPRIOR * CARRY * ((pDef && pDef[t]) || 0)) / (sw + KPRIOR);
     }
     off = no; def = nd;
   }
+  return { off, def, byT, W };
+}
+const leagueOf = fin => { const n = fin.length; if (!n) return { L: 114, HCA: HCA0, n }; const l = fin.reduce((s, g) => s + g.hs + g.as, 0) / (2 * n), ho = fin.reduce((s, g) => s + g.hs - g.as, 0) / n; return { L: (n * l + 60 * 114) / (n + 60), HCA: (n * ho + 300 * HCA0) / (n + 300), n }; };
+let PREV_MEM = null;
+function buildModel() {
+  const cs = CUR_SY();
+  const allG = Object.values(DB.games).filter(gValid);
+  const all = allG.filter(g => seasonOf(g.ed) === cs).sort((x, y) => x.d < y.d ? -1 : 1);
+  const fin = all.filter(g => g.s === 'post' && g.hs != null && g.as != null);
+  // época anterior: forças finais (guardadas em memória)
+  const prevFin = allG.filter(g => seasonOf(g.ed) === cs - 1 && g.s === 'post' && g.hs != null).sort((x, y) => x.d < y.d ? -1 : 1);
+  if (!PREV_MEM || PREV_MEM.n !== prevFin.length) { const lp = leagueOf(prevFin); const r = prevFin.length > 200 ? fitRatings(prevFin, lp.L, lp.HCA) : { off: {}, def: {} }; PREV_MEM = { n: prevFin.length, off: r.off, def: r.def }; }
+  const n = fin.length, lg = leagueOf(fin), L = lg.L, HCA = lg.HCA;
+  const { off, def, byT, W } = fitRatings(fin, L, HCA, PREV_MEM.off, PREV_MEM.def);
   const net = t => (off[t] || 0) - (def[t] || 0);
   const sp = {};
   for (const t in byT) {
@@ -258,7 +272,7 @@ function buildModel() {
       const w = W[t + '|' + g.id], r = (g.hs - g.as) - (HCA + net(g.h) - net(g.a));
       if (g.h === t) { rh += w * r; wh += w; } else { ra += w * (-r); wa += w; }
     }
-    sp[t] = clamp((rh / (wh + KSPLIT) - ra / (wa + KSPLIT)) / 2, -1.5, 1.5);
+    sp[t] = clamp((rh / (wh + KSPLIT) - ra / (wa + KSPLIT)) / 2, -SPCAP, SPCAP);
   }
   // registos, forma, último jogo (para o cansaço)
   const rec = {}; const R = t => rec[t] = rec[t] || { w: 0, l: 0, hw: 0, hl: 0, aw: 0, al: 0, pf: 0, pa: 0, last: [] };
@@ -270,12 +284,12 @@ function buildModel() {
     h.last.push({ w: hw, s: g.hs + '-' + g.as, vs: g.a, home: true, id: g.id }); a.last.push({ w: !hw, s: g.as + '-' + g.hs, vs: g.h, home: false, id: g.id });
   });
   const sched = {}; all.filter(g => g.s !== 'off').forEach(g => { (sched[g.h] = sched[g.h] || []).push(g); (sched[g.a] = sched[g.a] || []).push(g); });
-  return { L, HCA, off, def, sp, net, rec, sched, n, gp: t => (byT[t] || []).length, cal: calibW() };
+  return { L, HCA, off, def, sp, net, rec, sched, n, gp: t => (byT[t] || []).length, cal: calibW(), prevN: PREV_MEM.n };
 }
 /* o Tó aprende quanto confiar na casa de apostas: com as previsões que guardou ANTES
    de cada jogo, procura o peso w que mais reduz o erro de  w·casa + (1−w)·modelo */
 function calibW() {
-  const one = (getK, getM, getA, W0) => {
+  const one = (getK, getM, getA, W0, Wmin) => {
     let ed = 0, dd = 0, n = 0, eMod = 0, eMkt = 0;
     Object.keys(PREDS).forEach(id => {
       const g = DB.games[id], p = PREDS[id]; if (!g || g.s !== 'post' || g.hs == null) return;
@@ -283,11 +297,11 @@ function calibW() {
       const a = getA(g), d = k - mm; ed += (a - mm) * d; dd += d * d; n++; eMod += Math.abs(a - mm); eMkt += Math.abs(a - k);
     });
     const raw = dd > 0 ? ed / dd : W0;
-    return { n, raw, w: clamp((n * clamp(raw, 0, 1) + 80 * W0) / (n + 80), 0.5, 0.97), eMod: n ? eMod / n : null, eMkt: n ? eMkt / n : null };
+    return { n, raw, w: clamp((n * clamp(raw, 0, 1) + 80 * W0) / (n + 80), Wmin, 0.98), eMod: n ? eMod / n : null, eMkt: n ? eMkt / n : null };
   };
   return {
-    m: one(p => p.hl == null ? null : -p.hl, p => p.mm, g => g.hs - g.as, CFG.mktW),
-    t: one(p => p.tl == null ? null : p.tl, p => p.tm, g => g.hs + g.as, CFG.mktW)
+    m: one(p => p.hl == null ? null : -p.hl, p => p.mm, g => g.hs - g.as, CFG.mktW, Math.min(0.80, CFG.mktW)),
+    t: one(p => p.tl == null ? null : p.tl, p => p.tm, g => g.hs + g.as, CFG.mktWt || 0.95, Math.min(0.85, CFG.mktWt || 0.95))
   };
 }
 /* probabilidade com resultados inteiros: ganha se X > k; se k for inteiro, X = k devolve a aposta */
@@ -308,8 +322,8 @@ function predict(g) {
   let Ea = M.L - M.HCA / 2 + (M.off[a] || 0) + (M.def[h] || 0) - spT / 2;
   const rh = restOf(M, h, g), ra = restOf(M, a, g);
   let restAdj = 0;
-  if (rh === 1) { Eh -= 0.8; Ea += 0.6; restAdj -= 1.4; }
-  if (ra === 1) { Ea -= 0.8; Eh += 0.6; restAdj += 1.4; }
+  if (rh === 1) { Eh -= B2B_OWN; Ea += B2B_OPP; restAdj -= B2B_OWN + B2B_OPP; }
+  if (ra === 1) { Ea -= B2B_OWN; Eh += B2B_OPP; restAdj += B2B_OWN + B2B_OPP; }
   // lesões da ESPN: só no modelo (a casa já as conhece), só a parte que a equipa ainda não absorveu
   const ij = (typeof injInfo === 'function') ? injInfo(g) : { h: 0, a: 0, list: { h: [], a: [] } };
   Eh -= 0.6 * ij.h; Ea += 0.4 * ij.h; Ea -= 0.6 * ij.a; Eh += 0.4 * ij.a;
@@ -317,8 +331,8 @@ function predict(g) {
   const mModel = Eh - Ea, tModel = Eh + Ea;
   const gpMin = Math.min(M.gp(h), M.gp(a));
   const hasM = o.hl != null, hasT = o.tl != null;
-  const early = Math.max(0, 8 - gpMin) * 0.03;                       // início de época: ainda mais peso na casa
-  const W = clamp(M.cal.m.w + early, 0, 0.97), Wt = clamp(M.cal.t.w + early, 0, 0.97);
+  const early = Math.max(0, 8 - gpMin) * 0.015;                      // início de época: ainda mais peso na casa
+  const W = clamp(M.cal.m.w + early, 0, 0.98), Wt = clamp(M.cal.t.w + early, 0, 0.98);
   let m = hasM ? W * (-o.hl) + (1 - W) * mModel : mModel;
   let t = hasT ? Wt * o.tl + (1 - Wt) * tModel : tModel;
   // ausências que tu marcas: notícia que a casa ainda não meteu na linha → conta por inteiro
@@ -334,13 +348,13 @@ function predict(g) {
     ['Lesões da ESPN (só no modelo)', injAdj]
   ];
   P.cands = candidates(g, P);
-  const elig = P.cands.filter(c => c.odd >= CFG.oddMin && c.odd <= CFG.oddMax && !c.sus).sort((x, y) => y.ev - x.ev);
+  const elig = P.cands.filter(c => c.odd >= CFG.oddMin && c.odd <= CFG.oddMax && !c.sus && !(c.mk === 'ml' && c.der)).sort((x, y) => y.ev - x.ev);
   P.best = elig[0] || null;
   P.value = P.best && P.best.ev >= CFG.evMin + (P.best.der ? 0.02 : 0) ? P.best : null;
   return P;
 }
 function probs(P, mk, sel, line) {
-  if (mk === 'ml') return { w: sel === 'h' ? P.pH : 1 - P.pH, push: 0 };
+  if (mk === 'ml') { const ph = P.pML != null ? P.pML : P.pH; return { w: sel === 'h' ? ph : 1 - ph, push: 0 }; }
   if (mk === 'sp') return sel === 'h' ? cover(P.m, SDM, -line) : cover(-P.m, SDM, -line);   // casa ganha se diferença > −linha
   if (mk === 'tot') return sel === 'o' ? cover(P.t, SDT, line) : cover(-P.t, SDT, -line);
   return { w: 0, push: 0 };
@@ -350,6 +364,9 @@ const evOf = (q, odd) => q.w * odd + q.push - 1;                     // devolvid
 const fairOf = q => q.w > 0 ? (1 - q.push) / q.w : 99;
 function candidates(g, P) {
   const o = g.o || {}, out = [];
+  // vencedor: no teste às cegas, as vitórias batiam com a odd da casa SEM margem, não com a curva normal.
+  // Por isso: probabilidade = odd da casa sem margem + (1 − peso da casa) × opinião do modelo.
+  if (o.hml && o.aml) { const pNV = (1 / o.hml) / (1 / o.hml + 1 / o.aml); P.pML = clamp(pNV + (1 - (P.W || CFG.mktW)) * (Phi(P.mModel / SDM) - pNV), 0.01, 0.99); }
   const add = (mk, sel, line, odd, der) => { if (!(odd > 1)) return; const q = probs(P, mk, sel, line); out.push({ mk, sel, line, odd: r2(odd), der: !!der, p: q.w, push: q.push, ev: evOf(q, odd), fair: fairOf(q) }); };
   // salvaguarda: a odd de vencedor tem de bater certo com o handicap da mesma casa (senão é erro de dados)
   const sus = o.hml && o.aml && o.hl != null && Math.abs((1 / o.hml) / (1 / o.hml + 1 / o.aml) - Phi(-o.hl / SDM)) > 0.04;
@@ -377,7 +394,12 @@ function snapshotPreds() {
     if (!gValid(g) || g.s !== 'pre' || new Date(g.d).getTime() < now - 6e5) return;
     if (ymdDiff(todayET(), g.ed) > 2) return;
     const P = predict(g);
-    PREDS[g.id] = { m: r2(P.m), t: r2(P.t), mm: r2(P.mModel), tm: r2(P.tModel), pH: r2(P.pH), hl: g.o && g.o.hl, tl: g.o && g.o.tl, ed: g.ed, pk: P.value ? { mk: P.value.mk, sel: P.value.sel, line: P.value.line, odd: P.value.odd, ev: r2(P.value.ev), p: r2(P.value.p), der: !!P.value.der, lb: selLabel(g, P.value.mk, P.value.sel, P.value.line) } : null, ts: now };
+    const pat = {};
+    if (g.o && g.o.hl != null) {
+      if (P.rh != null && P.ra != null) { const rh = Math.min(5, P.rh), ra = Math.min(5, P.ra); if (Math.abs(rh - ra) >= 2) { const sel = rh > ra ? 'h' : 'a'; pat.rest = { sel, line: sel === 'h' ? g.o.hl : -g.o.hl }; } }
+      if (P.gpMin < 10 && Math.abs(g.o.hl) >= 3) { const sel = g.o.hl < 0 ? 'a' : 'h'; pat.dog = { sel, line: sel === 'h' ? g.o.hl : -g.o.hl }; }
+    }
+    PREDS[g.id] = { pat, m: r2(P.m), t: r2(P.t), mm: r2(P.mModel), tm: r2(P.tModel), pH: r2(P.pH), hl: g.o && g.o.hl, tl: g.o && g.o.tl, ed: g.ed, pk: P.value ? { mk: P.value.mk, sel: P.value.sel, line: P.value.line, odd: P.value.odd, ev: r2(P.value.ev), p: r2(P.value.p), der: !!P.value.der, lb: selLabel(g, P.value.mk, P.value.sel, P.value.line) } : null, ts: now };
   });
   // limpeza: só os últimos 600
   const ks = Object.keys(PREDS); if (ks.length > 600) ks.sort((a, b) => PREDS[a].ts - PREDS[b].ts).slice(0, ks.length - 600).forEach(k => delete PREDS[k]);
@@ -485,7 +507,7 @@ function safeCands(dayOff) {
     const estOdd = pm => r2(Math.max(1.01, 1 / (Math.min(0.97, pm) * 1.045)));
     const opts = [];
     // a) favorito ganha
-    const sH = P.m >= 0, pML = sH ? P.pH : 1 - P.pH, pMm = Phi((sH ? mm : -mm) / SDM);
+    const sH = P.m >= 0, pML = probs(P, 'ml', sH ? 'h' : 'a').w, pMm = Phi((sH ? mm : -mm) / SDM);
     const mlC = P.cands.find(c => c.mk === 'ml' && c.sel === (sH ? 'h' : 'a') && !c.der && !c.sus);
     opts.push({ mk: 'ml', sel: sH ? 'h' : 'a', line: null, p: pML, odd: mlC ? mlC.odd : estOdd(pMm), est: !mlC });
     // b) handicap alternativo no lado do Tó
