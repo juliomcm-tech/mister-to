@@ -7,7 +7,7 @@ Ficheiros (todos na mesma pasta):
   icon-192.png / icon-512.png / icon-maskable-512.png   a cara do Tó
   .nojekyll               (ficheiro vazio, para o GitHub Pages)
 
-1) PÔR ONLINE — repositório NOVO, separado do Mister Zé
+1) PÔR ONLINE (GitHub Pages)
    - GitHub → New repository → nome: mister-to → Public → Create
    - Settings → Pages → Source: Deploy from a branch → main / (root) → Save
    - Link: https://juliomcm-tech.github.io/mister-to/
