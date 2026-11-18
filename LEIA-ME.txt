@@ -1,0 +1,37 @@
+MISTER TÓ · NBA  (o colega do Mister Zé, só para basket)
+
+Ficheiros (todos na mesma pasta):
+  index.html              a app (um só ficheiro)
+  manifest.webmanifest    nome, ícone, cores, atalhos
+  sw.js                   funciona offline
+  icon-192.png / icon-512.png / icon-maskable-512.png   a cara do Tó
+  .nojekyll               (ficheiro vazio, para o GitHub Pages)
+
+1) PÔR ONLINE — repositório NOVO, separado do Mister Zé
+   - GitHub → New repository → nome: mister-to → Public → Create
+   - "uploading an existing file" → arrasta os ficheiros → Commit changes
+   - Settings → Pages → Source: Deploy from a branch → main / (root) → Save
+   - Link: https://juliomcm-tech.github.io/mister-to/
+   (Não pôr dentro do repositório mister-ze: o service worker do Zé
+    podia guardar a página do Tó por cima da dele.)
+
+2) INSTALAR NO SAMSUNG
+   - Abre o link no Chrome → menu ⋮ → "Instalar aplicação"
+
+3) USAR
+   - 🔄 vai à ESPN (só quando carregas). A 1.ª vez busca a época toda (uns segundos).
+   - HOJE: jogos de esta noite / ontem / amanhã (horas de cá). Toca num jogo para
+     ver a ficha, o porquê, os mercados, lesões da ESPN e para apostar.
+   - Ao registares uma aposta, o Tó responde com a dele (mesmo jogo, mesmo valor).
+   - DUELO: quem lucrou mais. CONTAS: Tu · Mister Tó · Piloto, exportar e imprimir.
+   - MAIS: classificação, Diário do Tó, como pensa, definições, cópia de segurança.
+
+4) AS TRÊS CONTAS (simulação, sem dinheiro real)
+   - Tu (100 €): apostas o que quiseres; o Tó dá opinião antes de confirmares.
+   - Mister Tó (100 €): responde a cada aposta tua → duelo.
+   - Piloto (250 €): aposta sozinho 2,50 € em cada «valor» do Tó.
+
+5) ATUALIZAR A APP: substitui o index.html no GitHub. As apostas ficam no telemóvel.
+
+Nota: cada telemóvel tem as suas contas. As chaves do Tó começam por «to_»
+e não mexem nas do Zé.
