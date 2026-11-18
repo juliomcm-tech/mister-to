@@ -173,6 +173,12 @@ input.in,select.in{width:100%;background:#0a1730;border:1px solid var(--line2);b
 .tile .lb{position:absolute;left:0;right:0;bottom:0;padding:8px 4px 9px;text-align:center;font:800 .8rem/1.1 var(--cond);text-transform:uppercase;letter-spacing:.04em;background:linear-gradient(180deg,transparent,rgba(0,0,0,.85) 40%)}
 .empty{text-align:center;padding:24px 12px}
 .empty .face{width:96px;height:96px;margin:0 auto 6px}
+.inst{display:flex;align-items:center;gap:10px;margin:12px 0 0;padding:10px 12px;border-radius:14px;background:linear-gradient(135deg,#17357a,#0e2550);border:1px solid rgba(255,138,31,.55);box-shadow:0 6px 16px rgba(0,0,0,.45)}
+.inst .e{font-size:1.8rem}
+.inst .t{flex:1;min-width:0;line-height:1.25}
+.inst .t b{display:block;font:800 1rem var(--cond);text-transform:uppercase;letter-spacing:.03em}
+.inst .t small{color:var(--mut)}
+.inst .x{background:none;border:0;color:var(--mut);font-size:1.1rem;padding:6px;cursor:pointer}
 #toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;background:#132a4f;border:1px solid var(--or2);border-radius:12px;padding:10px 14px;font-weight:600;box-shadow:0 8px 20px rgba(0,0,0,.5);display:none;max-width:90vw;text-align:center}
 #toast.on{display:block}
 .stand td,.stand th{padding:6px 3px}
@@ -212,12 +218,12 @@ input.in,select.in{width:100%;background:#0a1730;border:1px solid var(--line2);b
 <script>
 'use strict';
 /* =====================================================================
-   MISTER TÓ · NBA  —  o colega do Mister Zé, só para basket.
+   MISTER TÓ · NBA  —  análise e duelo de apostas, só basket.
    Um ficheiro, quatro ecrãs: Hoje · Duelo · Contas · Mais.
    Dados: ESPN (grátis, sem token). Só vai à internet quando carregas em 🔄.
    Tudo fica guardado no telemóvel (localStorage, chaves «to_…»).
    ===================================================================== */
-const APP_VER = '1.0.1';
+const APP_VER = '1.0.2';
 
 /* ---------- utilitários ---------- */
 const $ = s => document.querySelector(s);
@@ -732,6 +738,7 @@ function viewHoje() {
     <div class="big">${G.length} jogo${G.length === 1 ? '' : 's'}</div>
     <div class="sub">${first ? '1.º às ' + hhmm(first.d) + ' (hora de cá) · ' : ''}${esc(say)}</div>
     <div class="face">${toFace(picks.length ? 'win' : 'ok')}</div></div>
+  ${installBanner()}
   <div class="seg daysel">${['Ontem', 'Esta noite', 'Amanhã'].map((t, i) => `<button class="${DAY === i - 1 ? 'on' : ''}" onclick="DAY=${i - 1};render()">${t}</button>`).join('')}</div>`;
   if (picks.length) {
     h += `<h2 class="sec">🏀 Boletim do Tó<span class="r">só jogos ${DAY === 1 ? 'de amanhã' : 'desta noite'}</span></h2><div class="card">` +
@@ -739,7 +746,7 @@ function viewHoje() {
       `<div class="small muted" style="margin-top:6px">«Valor» = o Tó acha que a odd paga mais do que devia. Não é certeza: é vantagem a longo prazo.</div></div>`;
   }
   if (G.length) h += `<h2 class="sec">📅 Jogos<span class="r">casa – fora · 😴 = jogou ontem</span></h2>` + G.map(gameCard).join('');
-  else if (!Object.keys(DB.games).length) h += `<div class="card empty"><div class="face">${toFace('ok')}</div><b>Olá! Sou o Mister Tó.</b><div class="muted small" style="margin:6px 0 12px">Sou o colega do Zé que só percebe de basket. Estudo as equipas fortes em casa e fracas fora, comparo com as odds e faço duelos contigo.</div><button class="btn or" onclick="refresh()">🔄 Ir buscar os jogos</button></div>`;
+  else if (!Object.keys(DB.games).length) h += `<div class="card empty"><div class="face">${toFace('ok')}</div><b>Olá! Sou o Mister Tó.</b><div class="muted small" style="margin:6px 0 12px">Só percebo de basket. Estudo a força de cada equipa, o cansaço e o fator casa, comparo com as odds e faço duelos contigo.</div><button class="btn or" onclick="refresh()">🔄 Ir buscar os jogos</button></div>`;
   return h;
 }
 const nmLg = id => /\S{8,}/.test(tName(id)) ? ' lg' : '';
@@ -1031,8 +1038,9 @@ function printBets() {
 
 /* ---------- MAIS ---------- */
 function viewMais() {
-  const T = [['🏆', 'Classificação', 'openStand()'], ['📒', 'Diário do Tó', 'openDiary()'], ['🧠', 'Como pensa o Tó', 'openHow()'], ['⚙️', 'Definições', 'openCfg()'], ['💾', 'Cópia de segurança', 'openBackup()'], ['🩺', 'Testar ligação', 'openNet()']];
-  return `<div class="tiles">${T.map(([i, l, f]) => `<div class="tile" onclick="${f}"><div class="ic">${i}</div><div class="lb">${l}</div></div>`).join('')}</div>
+  const T = [['🏆', 'Classificação', 'openStand()'], ['📒', 'Diário do Tó', 'openDiary()'], ['🧠', 'Como pensa o Tó', 'openHow()'], ['⚙️', 'Definições', 'openCfg()'], ['💾', 'Cópia de segurança', 'openBackup()'], ['🩺', 'Testar ligação', 'openNet()'], ['📲', 'Instalar app', 'openInstall()']];
+  const T2 = isStandalone() ? T.filter(x => x[2] !== 'openInstall()') : T;
+  return `<div class="tiles">${T2.map(([i, l, f]) => `<div class="tile" onclick="${f}"><div class="ic">${i}</div><div class="lb">${l}</div></div>`).join('')}</div>
    <div class="card small muted" style="margin-top:14px;text-align:center">Mister Tó v${APP_VER} · dados da ESPN · simulação, sem dinheiro real<br>© 2026 Júlio Melo</div>`;
 }
 let CONFV = 'E';
@@ -1139,6 +1147,34 @@ async function netTest(btn) {
   if (best) LS.set('bridge', best.i);
   $('#netBox').innerHTML = `<div class="card small">${rows.join('<br>')}${best ? `<br><b>A usar: ${BRIDGES[best.i].n}</b>` : '<br><b class="neg">Nenhum caminho funcionou. Tens internet?</b>'}</div>`;
   btn.disabled = false; btn.textContent = 'Testar outra vez';
+}
+
+/* ---------- 📲 instalar como app (igual ao Céu de Hoje) ---------- */
+let DEFER_INSTALL = null;
+const isStandalone = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); DEFER_INSTALL = e; if (VIEW === 'hoje' || VIEW === 'mais') render(); });
+window.addEventListener('appinstalled', () => { DEFER_INSTALL = null; LS.set('instHide', 1); toast('🏀 Mister Tó instalado! Já está no teu ecrã.'); render(); });
+function installBanner() {
+  if (isStandalone() || LS.get('instHide', 0)) return '';
+  return `<div class="inst"><span class="e">📲</span><div class="t"><b>Instala o Mister Tó</b><small>Fica no ecrã do telemóvel, como uma app. Usa o Chrome.</small></div><button class="btn or sm" onclick="doInstall()">Instalar</button><button class="x" onclick="LS.set('instHide',1);render()" aria-label="Fechar">✕</button></div>`;
+}
+const INSTALL_HELP = () => isIOS()
+  ? '<p><b>iPhone:</b> abre no <b>Safari</b>, toca em <b>Partilhar</b> (□↑) e escolhe <b>«Adicionar ao ecrã principal»</b>.</p>'
+  : '<p><b>Android (Chrome):</b> toca nos <b>⋮</b> em cima à direita e escolhe <b>«Instalar app»</b> ou <b>«Adicionar ao ecrã principal»</b>.</p><p class="small muted">No Samsung Internet: menu ☰ → «Adicionar página a» → «Ecrã inicial».</p>';
+async function doInstall() {
+  if (DEFER_INSTALL) {
+    DEFER_INSTALL.prompt();
+    try { const r = await DEFER_INSTALL.userChoice; if (r && r.outcome === 'accepted') LS.set('instHide', 1); } catch (e) {}
+    DEFER_INSTALL = null; render(); return;
+  }
+  openInstall();
+}
+function openInstall() {
+  openSheet('📲 Instalar como app', isStandalone() ? '<div class="card">✅ Já estás a usar o Mister Tó como app.</div>' :
+    `<div class="card"><div class="row" style="gap:12px"><div style="width:64px;height:64px;flex:0 0 64px">${toFace('win')}</div><div>Fica com o ícone do Tó no ecrã, abre em ecrã inteiro e funciona mesmo sem internet (só o 🔄 precisa de rede).</div></div></div>
+     ${DEFER_INSTALL ? '<button class="btn or full" onclick="doInstall()">📲 Instalar agora</button>' : ''}
+     <div class="card" style="margin-top:10px">${INSTALL_HELP()}<p class="small muted">Depois aparece o ícone do Mister Tó (a bola com bigode) no teu ecrã.</p></div>`);
 }
 
 /* ---------- arranque ---------- */
