@@ -153,6 +153,9 @@ svg.i{width:1.15em;height:1.15em;vertical-align:-.2em;flex:0 0 auto}
 .team .nm.xl{font-size:.76rem}
 .team .rc{font:600 .76rem/1.25 var(--cond);color:var(--mut);white-space:nowrap}
 .logo{flex:0 0 40px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;font:italic 900 .8rem var(--cond);color:#fff;clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);text-shadow:0 1px 2px rgba(0,0,0,.7)}
+.logo{position:relative;overflow:hidden}
+.logo img{position:absolute;inset:8%;width:84%;height:84%;object-fit:contain;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
+.logo img+b{visibility:hidden}
 .score{text-align:center;min-width:80px;padding:0 4px}
 .hdr .score .s{font-size:1.45rem}
 .hdr .team .nm{font-size:.92rem}
@@ -405,7 +408,7 @@ function ingest(ev) {
   if (!NBA30.has(H.team.abbreviation) || !NBA30.has(A.team.abbreviation)) return;   // All-Star, pré-época contra clubes de fora…
   const ty = ev.season && ev.season.type;
   if (ty && [2, 3, 5].indexOf(Number(ty)) < 0) return;                               // só época regular, play-in e playoffs
-  [H.team, A.team].forEach(t => { DB.teams[t.id] = { id: String(t.id), ab: t.abbreviation, nm: t.shortDisplayName || t.name || t.displayName, fn: t.displayName || t.name, c: t.color || '553399', c2: t.alternateColor || 'ff8a1f' }; });
+  [H.team, A.team].forEach(t => { const lg = t.logo || (t.logos && t.logos[0] && t.logos[0].href); DB.teams[t.id] = { id: String(t.id), ab: t.abbreviation, nm: t.shortDisplayName || t.name || t.displayName, fn: t.displayName || t.name, c: t.color || '553399', c2: t.alternateColor || 'ff8a1f', lg: lg && /^https:\/\//.test(lg) ? lg : undefined }; });
   const S = (c.status || ev.status || {}), st = S.type || {};
   const off = /POSTPON|CANCEL|SUSPEND|FORFEIT/i.test(String(st.name || '') + ' ' + String(st.description || ''));
   const s = off ? 'off' : (st.completed || st.state === 'post') ? 'post' : st.state === 'in' ? 'in' : 'pre';
@@ -1193,10 +1196,12 @@ let DAY = 0, ACCF = 'all', BT = 'seg', GT = 'ana', SORT = LS.get('sort', 'hora')
 function go(v) { VIEW = v; history.replaceState(null, '', '#' + v); render(); window.scrollTo(0, 0); }
 function setUpd(t) { $('#upd').textContent = t; }
 const tCol = id => '#' + ((DB.teams[id] && DB.teams[id].c) || '33425a');
+/* emblema da equipa: o que a própria ESPN manda nos dados (carregado no telemóvel); se falhar, fica o hexágono com as cores */
 function logo(id, sz) {
   const t = DB.teams[id] || { ab: '?', c: '33425a', c2: 'ff7a1a' };
   const s = sz ? `width:${sz}px;height:${sz}px;flex-basis:${sz}px;font-size:${sz / 3.3}px;` : '';
-  return `<span class="logo" style="${s}background:linear-gradient(160deg,#${esc(t.c)},#${esc(t.c)}aa 60%,#${esc(t.c2)}88)">${esc(t.ab)}</span>`;
+  const url = t.lg || (t.ab && t.ab !== '?' ? `https://a.espncdn.com/i/teamlogos/nba/500/${String(t.ab).toLowerCase()}.png` : '');
+  return `<span class="logo" style="${s}background:linear-gradient(160deg,#${esc(t.c)},#${esc(t.c)}aa 60%,#${esc(t.c2)}88)">${url ? `<img src="${esc(url)}" alt="" loading="lazy" onerror="this.remove()">` : ''}<b>${esc(t.ab)}</b></span>`;
 }
 function renderTop() {
   const s = k => accStats(k);

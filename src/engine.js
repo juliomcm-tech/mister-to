@@ -135,7 +135,7 @@ function ingest(ev) {
   if (!NBA30.has(H.team.abbreviation) || !NBA30.has(A.team.abbreviation)) return;   // All-Star, pré-época contra clubes de fora…
   const ty = ev.season && ev.season.type;
   if (ty && [2, 3, 5].indexOf(Number(ty)) < 0) return;                               // só época regular, play-in e playoffs
-  [H.team, A.team].forEach(t => { DB.teams[t.id] = { id: String(t.id), ab: t.abbreviation, nm: t.shortDisplayName || t.name || t.displayName, fn: t.displayName || t.name, c: t.color || '553399', c2: t.alternateColor || 'ff8a1f' }; });
+  [H.team, A.team].forEach(t => { const lg = t.logo || (t.logos && t.logos[0] && t.logos[0].href); DB.teams[t.id] = { id: String(t.id), ab: t.abbreviation, nm: t.shortDisplayName || t.name || t.displayName, fn: t.displayName || t.name, c: t.color || '553399', c2: t.alternateColor || 'ff8a1f', lg: lg && /^https:\/\//.test(lg) ? lg : undefined }; });
   const S = (c.status || ev.status || {}), st = S.type || {};
   const off = /POSTPON|CANCEL|SUSPEND|FORFEIT/i.test(String(st.name || '') + ' ' + String(st.description || ''));
   const s = off ? 'off' : (st.completed || st.state === 'post') ? 'post' : st.state === 'in' ? 'in' : 'pre';

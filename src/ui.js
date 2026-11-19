@@ -54,10 +54,12 @@ let DAY = 0, ACCF = 'all', BT = 'seg', GT = 'ana', SORT = LS.get('sort', 'hora')
 function go(v) { VIEW = v; history.replaceState(null, '', '#' + v); render(); window.scrollTo(0, 0); }
 function setUpd(t) { $('#upd').textContent = t; }
 const tCol = id => '#' + ((DB.teams[id] && DB.teams[id].c) || '33425a');
+/* emblema da equipa: o que a própria ESPN manda nos dados (carregado no telemóvel); se falhar, fica o hexágono com as cores */
 function logo(id, sz) {
   const t = DB.teams[id] || { ab: '?', c: '33425a', c2: 'ff7a1a' };
   const s = sz ? `width:${sz}px;height:${sz}px;flex-basis:${sz}px;font-size:${sz / 3.3}px;` : '';
-  return `<span class="logo" style="${s}background:linear-gradient(160deg,#${esc(t.c)},#${esc(t.c)}aa 60%,#${esc(t.c2)}88)">${esc(t.ab)}</span>`;
+  const url = t.lg || (t.ab && t.ab !== '?' ? `https://a.espncdn.com/i/teamlogos/nba/500/${String(t.ab).toLowerCase()}.png` : '');
+  return `<span class="logo" style="${s}background:linear-gradient(160deg,#${esc(t.c)},#${esc(t.c)}aa 60%,#${esc(t.c2)}88)">${url ? `<img src="${esc(url)}" alt="" loading="lazy" onerror="this.remove()">` : ''}<b>${esc(t.ab)}</b></span>`;
 }
 function renderTop() {
   const s = k => accStats(k);

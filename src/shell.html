@@ -153,6 +153,9 @@ svg.i{width:1.15em;height:1.15em;vertical-align:-.2em;flex:0 0 auto}
 .team .nm.xl{font-size:.76rem}
 .team .rc{font:600 .76rem/1.25 var(--cond);color:var(--mut);white-space:nowrap}
 .logo{flex:0 0 40px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;font:italic 900 .8rem var(--cond);color:#fff;clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);text-shadow:0 1px 2px rgba(0,0,0,.7)}
+.logo{position:relative;overflow:hidden}
+.logo img{position:absolute;inset:8%;width:84%;height:84%;object-fit:contain;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
+.logo img+b{visibility:hidden}
 .score{text-align:center;min-width:80px;padding:0 4px}
 .hdr .score .s{font-size:1.45rem}
 .hdr .team .nm{font-size:.92rem}
