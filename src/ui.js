@@ -871,4 +871,5 @@ document.querySelectorAll('[data-ic]').forEach(el => { el.outerHTML = ic(el.data
 window.addEventListener('hashchange', () => { let v = location.hash.slice(1); if (v === 'hoje') v = 'jogos'; if (VIEWS.includes(v) && v !== VIEW) { VIEW = v; render(); } });
 settleAll();
 render();
+setTimeout(bossFeed, 50);
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});

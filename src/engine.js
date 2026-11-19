@@ -5,7 +5,7 @@
    Dados: ESPN (grátis, sem token). Só vai à internet quando carregas em 🔄.
    Tudo fica guardado no telemóvel (localStorage, chaves «to_…»).
    ===================================================================== */
-const APP_VER = '3.3.0';
+const APP_VER = '3.3.1';
 
 /* ---------- utilitários ---------- */
 const $ = s => document.querySelector(s);
@@ -202,7 +202,7 @@ async function refresh() {
     snapshotSlips();
     const sett = settleAll();
     propGrade();
-    const pil = pilotRun();
+    const pil = pilotRun(); bossFeed();
     LS.set('last', Date.now());
     const n = Object.keys(DB.games).length;
     toast(fails && !n ? 'Sem ligação à ESPN. Experimenta «Testar ligação» no Mais.' : `✓ ${n} jogos${stu.inj ? ` · lesões de ${stu.inj} jogos` : ''}${stu.fin ? ` · ${stu.fin} jogos estudados` : ''}${sett ? ` · ${sett} apostas fechadas` : ''}${pil ? ` · piloto fez ${pil}` : ''}`, 4200);
@@ -533,6 +533,7 @@ function safeCands(dayOff) {
     const ov = P.t - mt >= 0, TL = ov ? half(mt - Z86 * SDT) : half(mt + Z86 * SDT);
     const pMt = ov ? 1 - Phi((TL - mt) / SDT) : Phi((TL - mt) / SDT);
     opts.push({ mk: 'tot', sel: ov ? 'o' : 'u', line: TL, p: probs(P, 'tot', ov ? 'o' : 'u', TL).w, odd: estOdd(pMt), est: true });
+    bossPool(g, opts);
     const best = opts.filter(x => x.p >= SAFE_LEG).sort((a, b) => b.p - a.p)[0];
     if (best) out.push(Object.assign(best, { g, lb: selLabel(g, best.mk, best.sel, best.line) }));
   });
@@ -573,3 +574,33 @@ function teamRt(t) {
   return { ovr: k(78 + M.net(t) * 1.8), atk: k(76 + (M.off[t] || 0) * 2.4), def: k(76 - (M.def[t] || 0) * 2.4), form: k(45 + wf * 54), home: k(42 + hp * 57), away: k(42 + ap * 57), pace: k(72 + (tot - 2 * M.L) * 1.1), gp, l10 };
 }
 
+/* =====================================================================
+   📤 FICHA PARA O MISTER BOSS
+   Em cada atualização, o Tó deixa no telemóvel as seleções do dia que
+   passam dos 80% (e as apostas de valor), e confere as antigas com o seu
+   próprio código de liquidação. O Mister Boss só lê esta ficha.
+   ===================================================================== */
+let BPOOL = null;
+function bossPool(g, opts) {
+  if (!BPOOL) return;
+  opts.forEach(x => { const p = x.c != null ? x.c : x.p; if (p >= 0.80 && p <= 0.985) BPOOL.push({ g, mk: x.mk, sel: x.sel, line: x.line == null ? null : x.line, p, odd: x.odd || null, est: x.est !== false }); });
+}
+function bossFeed() {
+  try {
+    const F = LS.get('boss', null) || { v: 1, legs: {} }, now = Date.now();
+    const gameOf = id => DB.games[id], segOf = g => ({ lg: 'NBA' }), glOf = g => gLabel(g);
+    BPOOL = []; [0, 1].forEach(d => { try { safeCands(d); } catch (e) {} }); const pool = BPOOL; BPOOL = null;
+    Object.values(DB.games).filter(g => g && g.s === 'pre' && new Date(g.d).getTime() > now && new Date(g.d).getTime() < now + 36 * 3600e3).forEach(g => {
+      try { const v = predict(g).value; if (v) pool.push({ g, mk: v.mk, sel: v.sel, line: v.line == null ? null : v.line, p: v.p, odd: v.odd, est: false, val: r2(v.ev) }); } catch (e) {}
+    });
+    pool.forEach(x => {
+      const id = x.g.id + '|' + x.mk + '|' + x.sel + '|' + x.line + (x.val != null ? '|v' : ''), L = F.legs[id];
+      const rec = { id, g: x.g.id, gl: glOf(x.g), d: x.g.d, mk: x.mk, mkn: mkName(x.mk), sel: x.sel, line: x.line, lb: selLabel(x.g, x.mk, x.sel, x.line), p: Math.round(x.p * 1000) / 1000, odd: x.odd ? r2(x.odd) : null, est: !!x.est, val: x.val != null ? x.val : null, seg: segOf(x.g), st: 'open', t: now };
+      if (!L) F.legs[id] = rec; else if (L.st === 'open' && new Date(L.d).getTime() > now) Object.assign(L, { p: rec.p, odd: rec.odd, est: rec.est, val: rec.val, t: now });
+    });
+    Object.values(F.legs).forEach(l => { if (l.st !== 'open') return; const g = gameOf(l.g); if (!g) return; let r = null; try { r = outcome(l, g); } catch (e) {} if (r) { l.st = r; l.tset = now; } });
+    const ks = Object.keys(F.legs); if (ks.length > 900) ks.sort((a, b) => F.legs[a].t - F.legs[b].t).slice(0, ks.length - 900).forEach(k => delete F.legs[k]);
+    Object.assign(F, { app: 'to', name: 'Mister Tó', sport: 'Basquetebol · NBA', ver: APP_VER, t: now });
+    LS.set('boss', F);
+  } catch (e) { console.warn('bossFeed', e); }
+}
