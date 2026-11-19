@@ -209,7 +209,7 @@ function boletimPanel(C, auto, picks) {
     else {
       h += `<div class="small muted" style="margin:10px 0 2px">As seleções mais seguras, juntas enquanto o boletim inteiro passa dos ${pct(SAFE_SLIP)}. <b>Seguro não é certo</b>: num boletim de 70%, 3 em cada 10 falham. As caixas amarelas têm odd estimada: mete a da Betano.</div>` +
         C.map((c, i) => { const key = legKey(c), od = SS.odd[key] != null ? SS.odd[key] : c.odd; return `<div class="leg"><input type="checkbox" ${SS.sel.has(key) ? 'checked' : ''} onchange="ssTog(${i},this.checked)">
-        <div><div class="t">${esc(c.lb)}</div><div class="g">${hhmm(c.g.d)} · ${esc(tAb(c.g.h))} – ${esc(tAb(c.g.a))} · ${esc(mkName(c.mk))}</div><div class="p">Tó ${pct(c.p)}</div></div>
+        <div><div class="t">${esc(c.lb)}</div><div class="g">${dayLbl(c.g.d)} · ${hhmm(c.g.d)} · ${esc(tAb(c.g.h))} – ${esc(tAb(c.g.a))} · ${esc(mkName(c.mk))}</div><div class="p">Tó ${pct(c.p)}</div></div>
         <input class="od${c.est && SS.odd[key] == null ? ' est' : ''}" inputmode="decimal" value="${String(od).replace('.', ',')}" oninput="ssOdd(${i},this)"></div>`; }).join('') + `<div class="sum" id="ssSum"></div>`;
     }
     const st = safeStats();
