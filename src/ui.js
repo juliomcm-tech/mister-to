@@ -126,6 +126,7 @@ function viewInicio() {
       <div class="kpi" style="--k:var(--teal)"><small>Ontem · seguro</small><b>${Y.sr ? (Y.sr.st === 'won' ? '<span class="pos">✓</span>' : Y.sr.st === 'lost' ? '<span class="neg">✗</span>' : '…') : '—'}</b></div></div></div>`;
   h += installBanner();
   // veredito de ontem
+  h += botHome();
   h += `<div class="pn hl">${pnH(`${ic('check')} Veredito de ontem`, Y.G.length + ' jogos')}`;
   if (!Y.n) h += `<div class="small muted">${Y.G.length ? 'O Tó não tinha previsões guardadas para ontem (só guarda quando tocas em ↻ antes dos jogos).' : 'Ontem não houve jogos.'}</div>`;
   else {
@@ -571,7 +572,8 @@ function viewContas() {
     h += `<div class="pn hl">${pnH(`${ic(ACC[ACCF].ic)} ${ACC[ACCF].n}`, 'toca outra vez para ver todas')}
       <div class="big-ovr"><div class="t">Saldo<div class="small muted" style="text-transform:none;letter-spacing:0">começou com ${eur(s.start)}</div></div><div class="grow"></div><div class="n" style="font-size:2rem">${eur(s.bal)}</div></div><div class="ruler"></div>
       <div style="margin-top:12px">${attr('Em jogo', Math.min(s.open, s.start), 'var(--c-orange)', eur(s.open), s.start || 1)}${attr('Taxa de acerto', n ? Math.round(s.w / n * 100) : 0, 'var(--c-green)', n ? `${pct(s.w / n)} (${s.w}/${n})` : '—', 100)}${attr('ROI (lucro por € apostado)', clamp(50 + s.roi * 100, 0, 100), s.roi >= 0 ? 'var(--c-green)' : 'var(--c-red)', sPct(s.roi), 100)}</div></div>`;
-  } else h += `<div class="small muted" style="margin:8px 2px">Toca numa conta para ver os números dela.</div>`;
+    if (ACCF === 'pi') h += botPanel();
+  } else h += botMini();
   h += `<div class="row w" style="margin-top:8px"><button class="btn sm" onclick="exportCSV()">${ic('download')} Exportar</button><button class="btn sm" onclick="printBets()">${ic('print')} Imprimir</button><button class="btn sm" onclick="openDeposit()">${ic('coins')} Recarregar</button></div>`;
   const L = BETS.filter(b => b.st !== 'pass' && (ACCF === 'all' || b.acc === ACCF)).sort((a, b) => b.t - a.t);
   const open = L.filter(b => b.st === 'open'), done = L.filter(b => b.st !== 'open');
@@ -582,7 +584,7 @@ function viewContas() {
   return h;
 }
 function openDeposit() {
-  openSheet('Recarregar banca', `<label class="f">Conta</label><select class="in" id="dAcc"><option value="tu">Tu</option><option value="to">Mister Tó</option><option value="pi">Piloto</option></select>
+  openSheet('Recarregar banca', `<label class="f">Conta</label><select class="in" id="dAcc"><option value="tu">Tu</option><option value="to">Mister Tó</option><option value="pi">Tó sozinho</option></select>
    <label class="f">Valor a juntar (€)</label><input class="in" id="dVal" inputmode="decimal" value="50">
    <div class="small muted" style="margin-top:6px">Fica registado à parte: o lucro e o ROI continuam certos.</div>
    <button class="btn fill full" style="margin-top:12px" onclick="doDeposit()">Juntar</button>`, true);
@@ -655,7 +657,7 @@ function statsAll() {
 function wilson(k, n) { if (!n) return [0, 1]; const z = 1.96, p = k / n, d = 1 + z * z / n, c = (p + z * z / (2 * n)) / d, m = z * Math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / d; return [c - m, c + m]; }
 function openStats() {
   const R = statsAll(), M = getModel(), ss = safeStats(), ps = propStats();
-  if (!R.n && !ss && !ps) return openSheet('Estatísticas', `<div class="pn empty"><div class="face">${toFace('ok')}</div>As estatísticas enchem-se sozinhas: o Tó guarda a previsão e a aposta de cada jogo antes de começar, e compara com o resultado. Toca em ↻ todos os dias antes dos jogos.</div>`);
+  if (!R.n && !ss && !ps && !botStats().n) return openSheet('Estatísticas', `<div class="pn empty"><div class="face">${toFace('ok')}</div>As estatísticas enchem-se sozinhas: o Tó guarda a previsão e a aposta de cada jogo antes de começar, e compara com o resultado. Toca em ↻ todos os dias antes dos jogos.</div>`);
   const sl = Object.values(SLIPS).map(slipResult).filter(x => x && x.st !== 'open');
   const slW = sl.filter(x => x.st === 'won').length;
   const pm = (k, n) => { const [a, b] = wilson(k, n); return `${pct(k / n)} <small>(${Math.round(a * 100)}–${Math.round(b * 100)}%)</small>`; };
@@ -687,6 +689,7 @@ function openStats() {
     `<div class="small muted">Dos 23 padrões testados às cegas em 11 épocas, só estes 2 aguentaram — e no limite. O Tó só os mede; não aposta neles.</div>`;
   h += catH('chart', 'Tó contra a casa', 'var(--c-blue)', 'erro médio na diferença') +
     `<div class="why"><span>Tó (final)</span><b>${f1(R.eT / Math.max(1, R.n))} pts</b></div><div class="why"><span>Só o modelo do Tó</span><b>${f1(R.eMod / Math.max(1, R.n))} pts</b></div>${R.nM ? `<div class="why"><span>Casa de apostas</span><b>${f1(R.eM / R.nM)} pts</b></div>` : ''}<div class="why"><span>Peso que o Tó dá à casa (aprendido)</span><b>${pct(M.cal.m.w)} · total ${pct(M.cal.t.w)}</b></div>`;
+  { const B = botStats(); h += catH('robot', 'Tó sozinho (bot)', 'var(--c-purple)', B.n ? `${B.n} apostas · ${B.open} em jogo` : 'ainda sem apostas') + (B.w + B.l ? botStatsBlock(B) : '<div class="small muted">O bot aposta sozinho quando atualizas antes dos jogos. As estatísticas aparecem depois dos primeiros resultados.</div>'); }
   h += catH('wallet', 'Contas', 'var(--c-yellow)') + ['tu', 'to', 'pi'].map(k => { const s = accStats(k); return `<div class="why"><span>${ACC[k].n}</span><b class="${s.profit >= 0 ? 'pos' : 'neg'}">${sEur(s.profit)} · ROI ${sPct(s.roi)} · ${s.w}/${s.w + s.l}</b></div>`; }).join('');
   h += `<div class="row" style="margin-top:12px"><button class="btn go full" onclick="exportPreds()">${ic('download')} Exportar previsões (Excel)</button></div>
    <div class="pn small muted">Os números entre parênteses são a margem de sorte (95%). Enquanto 52,4% estiver dentro dela, ainda não se sabe se o Tó bate a casa ou teve sorte. Tudo foi guardado antes de cada jogo começar.</div>`;
@@ -739,16 +742,59 @@ function openHow() {
    ${catH('bandage', '5. Ausências', 'var(--c-purple)')}<p>As lesões da ESPN (lidas a cada ↻) entram no modelo do Tó com o valor de cada jogador; quem já falhou os últimos jogos quase não conta. As baixas de última hora que marcas tu contam por inteiro.</p>
    ${catH('gem', '6. Valor e seguro', 'var(--c-green)')}<p><b>Valor:</b> a odd paga pelo menos ${pct(CFG.evMin)} acima do justo. <b>Seguro:</b> seleções com ${pct(SAFE_LEG)} ou mais, juntas enquanto o boletim passa dos ${pct(SAFE_SLIP)}.</p>
    ${catH('target', '7. O que dizem os testes às cegas', 'var(--neon)')}<p>O Tó foi testado em <b>11 épocas reais da NBA</b> (2014-2026), sempre sem ver o futuro, contra as linhas de fecho das casas. <b>Está bem calibrado</b> (quando diz 75%, acontece ~75%) e o boletim seguro cumpre o que promete (87% prometido, 87% real). <b>Mas não bate a linha de fecho</b>: o «valor» não deu lucro provado, e o valor de 10%+ em odds altas de vencedor até perdeu. Por isso agora confia 90% na casa e calcula o vencedor a partir da odd da casa sem margem. A melhor hipótese real: apostar <b>cedo</b> (antes de a linha mexer) e notícias de última hora que a casa ainda não tem. Também se testaram jogadores (14 épocas): as previsões de pontos/ressaltos/assistências estão calibradas, mas só valem se a Betano pagar mais do que a odd justa.</p>
-   <p class="small muted">Contas: <b>Tu</b> apostas o que quiseres e o Tó dá opinião; <b>Mister Tó</b> responde a cada aposta tua com a dele (duelo); <b>Piloto</b> aposta sozinho ${eur(CFG.piStake)} em cada «valor» e no boletim seguro da noite.</p></div>`);
+   <p class="small muted">Contas: <b>Tu</b> apostas o que quiseres e o Tó dá opinião; <b>Mister Tó</b> responde a cada aposta tua com a dele (duelo); <b>Tó sozinho</b> é um bot: aposta ${eur(CFG.piStake)} em cada jogo no vencedor que a cabeça dele prefere, sem ninguém lhe mexer.</p></div>`);
+}
+function botCurve(c) {
+  if (c.length < 2) return '';
+  const W = 320, H = 90, mn = Math.min(0, ...c), mx = Math.max(0, ...c), sp = mx - mn || 1, x = i => 8 + i / (c.length - 1) * (W - 16), y = v => 8 + (mx - v) / sp * (H - 16);
+  const pts = c.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' '), last = c[c.length - 1];
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;margin:6px 0"><line x1="8" x2="${W - 8}" y1="${y(0)}" y2="${y(0)}" stroke="rgba(128,128,128,.45)" stroke-dasharray="3 3"/><polyline points="${pts}" fill="none" stroke="${last >= 0 ? 'var(--pos)' : 'var(--neg)'}" stroke-width="2.5" stroke-linejoin="round"/><circle cx="${x(c.length - 1)}" cy="${y(last)}" r="3.5" fill="${last >= 0 ? 'var(--pos)' : 'var(--neg)'}"/></svg><div class="small muted">Lucro acumulado do bot, aposta a aposta (linha tracejada = zero).</div>`;
+}
+function botStatsBlock(S, noTop) {
+  const T = BOT_TEST, row = (lbl, txt, cls) => `<div class="why"><span>${lbl}</span><b class="${cls || ''}">${txt}</b></div>`;
+  let h = (noTop ? '' : `<div class="mosaic"><div><b>${S.hit == null ? '—' : pct(S.hit)}</b><small>acerto ${S.w}-${S.l}</small></div><div><b class="${S.roi == null ? '' : S.roi >= 0 ? 'pos' : 'neg'}">${S.roi == null ? '—' : sPct(S.roi)}</b><small>ROI</small></div><div><b class="${S.pl >= 0 ? 'pos' : 'neg'}">${sEur(S.pl)}</b><small>lucro</small></div></div>`) + botCurve(S.curve);
+  h += row('Com o favorito da casa', S.favN ? `${S.favW}/${S.favN} · ${sEur(S.favPl)}` : '—', S.favPl > 0 ? 'pos' : S.favPl < 0 ? 'neg' : '') +
+    row('Contra a casa (azarão)', S.dogN ? `${S.dogW}/${S.dogN} · ${sEur(S.dogPl)}` : '—', S.dogPl > 0 ? 'pos' : S.dogPl < 0 ? 'neg' : '') +
+    row('Quando tem 70%+ de certeza', S.confN ? `${S.confW}/${S.confN} (${pct(S.confW / S.confN)})` : '—') +
+    row('Teste às cegas', T.txt, 'muted');
+  if (S.days.length) h += catH('cal', 'Por dia', 'var(--c-blue)') + `<table class="tbl"><tr><th style="text-align:left">Dia</th><th>V-D</th><th>Lucro</th></tr>${S.days.slice(0, 14).map(x => `<tr><td style="text-align:left">${new Date(x.k + 'T12:00:00').toLocaleDateString('pt-PT', { weekday: 'short', day: '2-digit', month: '2-digit' })}</td><td>${x.w}-${x.l}</td><td class="${x.pl >= 0 ? 'pos' : 'neg'}">${sEur(x.pl)}</td></tr>`).join('')}</table>`;
+  const gs = Object.entries(S.byG).filter(([, o]) => o.n >= 3).sort((a, b) => b[1].n - a[1].n);
+  if (gs.length) h += catH('list', '', 'var(--c-blue)') + `<table class="tbl"><tr><th style="text-align:left"></th><th>V/N</th><th>Lucro</th></tr>${gs.map(([k, o]) => `<tr><td style="text-align:left">${esc(k)}</td><td>${o.w}/${o.n}</td><td class="${o.pl >= 0 ? 'pos' : 'neg'}">${sEur(o.pl)}</td></tr>`).join('')}</table>`;
+  return h;
+}
+function botHome() {
+  const S = botStats();
+  if (!CFG.piOn && !S.n) return '';
+  return `<div class="pn" style="cursor:pointer" onclick="ACCF='pi';go('contas')">${pnH(`${ic('robot')} Tó sozinho · bot automático`, CFG.piOn ? '<span class="pos">ligado</span>' : '<span class="neg">desligado</span>')}
+    <div class="opinion" style="margin:0 0 8px"><div class="face">${toFace(S.roi == null ? 'ok' : S.roi >= 0 ? 'win' : 'sad')}</div><div class="small">${S.open ? `Tenho <b>${S.open} aposta${S.open === 1 ? '' : 's'}</b> em jogo (${eur(S.openL.reduce((s, b) => s + b.stake, 0))}): ${S.openL.slice(0, 3).map(b => esc(b.lb.replace(' ganha', '').replace(' vence', ''))).join(', ')}${S.open > 3 ? '…' : ''}.` : 'Aposto sozinho em todos os jogos das próximas 36 horas, quando atualizas.'}</div></div>
+    ${S.w + S.l ? `<div class="mosaic"><div><b>${pct(S.hit)}</b><small>acerto ${S.w}-${S.l}</small></div><div><b class="${S.roi >= 0 ? 'pos' : 'neg'}">${sPct(S.roi)}</b><small>ROI</small></div><div><b class="${S.pl >= 0 ? 'pos' : 'neg'}">${sEur(S.pl)}</b><small>lucro</small></div></div>` : ''}
+    <div class="small muted" style="margin-top:4px">Toca para ver tudo o que o bot fez.</div></div>`;
+}
+function botMini() {
+  const S = botStats();
+  return `<div class="pn" style="margin-top:10px;cursor:pointer" onclick="ACCF='pi';render()"><div class="opinion" style="margin:0"><div class="face">${toFace(S.roi == null ? 'ok' : S.roi >= 0 ? 'win' : 'sad')}</div><div><b>Tó sozinho</b> · ${CFG.piOn ? 'ligado' : '<span class="neg">desligado</span>'}<div class="small muted">${S.n ? `${S.n} apostas sozinho · ${S.w}-${S.l}${S.p ? '-' + S.p : ''} · ${S.open} em jogo${S.roi != null ? ' · ROI ' + sPct(S.roi) : ''}` : 'Aposta sozinho em todos os jogos quando atualizas. Toca para ver.'}</div></div></div></div>`;
+}
+function botPanel() {
+  const S = botStats(), nf = S.w + S.l;
+  const verdict = nf < 50 ? `Ainda é cedo: com ${nf} apostas fechadas manda a sorte. Começa a ler a partir de ~100; com confiança, a partir de ~300.`
+    : S.roi >= 0 ? 'Está a dar lucro: melhor do que se esperava. Continua a observar antes de acreditar.'
+    : S.roi > -0.06 ? 'Perto do esperado: acerta bastante, mas os favoritos pagam pouco e a margem da casa come o resto.'
+    : 'Abaixo do esperado: as casas estão a saber mais do que ele. É por isso que a app junta as odds com peso alto.';
+  return `<div class="pn" style="margin-top:10px">${pnH(`${ic('robot')} Como se porta sozinho`, CFG.piOn ? 'ligado' : 'desligado')}
+    <div class="opinion"><div class="face">${toFace('ok')}</div><div class="small">Em cada jogo das próximas 36 horas aposto <b>${eur(CFG.piStake)}</b> no vencedor que a <b>minha cabeça</b> prefere (sem copiar as odds), à odd da ESPN do momento. Ninguém me mexe: é a experiência honesta.</div></div>
+    ${botStatsBlock(S, true)}
+    <div class="small" style="margin-top:8px">${verdict}</div>
+    <div class="small muted" style="margin-top:8px">Eu só aposto quando atualizas a app: abre-a pelo menos uma vez por dia antes dos jogos.</div>
+    ${!CFG.piOn ? `<button class="btn fill full" style="margin-top:12px" onclick="CFG.piOn=true;LS.set('cfg',CFG);pilotRun();render()">Ligar o Tó sozinho</button>` : ''}</div>`;
 }
 function openCfg() {
   const inp = (id, lbl, v, hint) => `<label class="f">${lbl}</label><input class="in" id="${id}" inputmode="decimal" value="${String(v).replace('.', ',')}">${hint ? `<div class="small muted">${hint}</div>` : ''}`;
   openSheet('Definições', `<div class="row">${['tu', 'to', 'pi'].map(k => `<div style="flex:1">${inp('c_' + k, 'Banca ' + ACC[k].n, CFG.bank[k])}</div>`).join('')}</div>
    ${inp('c_min', 'Aposta mínima da tua casa (€)', CFG.min)}
-   ${inp('c_pis', 'Valor de cada aposta do piloto (€)', CFG.piStake)}
+   ${inp('c_pis', 'Valor de cada aposta do Tó sozinho (€)', CFG.piStake)}
    ${inp('c_ev', 'Valor mínimo para o Boletim (%)', Math.round(CFG.evMin * 100), 'Mais alto = menos apostas, mais exigentes.')}
    ${inp('c_w', 'Peso inicial da linha da casa (%)', Math.round(CFG.mktW * 100), 'Ponto de partida (o Tó ajusta com os resultados). Mínimo usado: 50.')}
-   <label class="f">Piloto automático</label><div class="seg"><button id="c_pon" class="${CFG.piOn ? 'on' : ''}" onclick="this.classList.add('on');$('#c_poff').classList.remove('on')">Ligado</button><button id="c_poff" class="${!CFG.piOn ? 'on' : ''}" onclick="this.classList.add('on');$('#c_pon').classList.remove('on')">Desligado</button></div>
+   <label class="f">Tó sozinho (bot automático)</label><div class="seg"><button id="c_pon" class="${CFG.piOn ? 'on' : ''}" onclick="this.classList.add('on');$('#c_poff').classList.remove('on')">Ligado</button><button id="c_poff" class="${!CFG.piOn ? 'on' : ''}" onclick="this.classList.add('on');$('#c_pon').classList.remove('on')">Desligado</button></div>
    <button class="btn fill full" style="margin-top:14px" onclick="saveCfg()">Guardar</button>
    <button class="btn red full" style="margin-top:10px" onclick="askConfirm('Apagar TODAS as apostas e recomeçar as três contas? Os jogos guardados ficam.','Apagar apostas','wipeBets()')">Recomeçar as contas</button>`);
 }

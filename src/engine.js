@@ -5,7 +5,7 @@
    Dados: ESPN (grátis, sem token). Só vai à internet quando carregas em 🔄.
    Tudo fica guardado no telemóvel (localStorage, chaves «to_…»).
    ===================================================================== */
-const APP_VER = '3.2.0';
+const APP_VER = '3.3.0';
 
 /* ---------- utilitários ---------- */
 const $ = s => document.querySelector(s);
@@ -65,6 +65,7 @@ const CFG_DEF = { bank: { tu: 100, to: 100, pi: 250 }, min: 0.25, piOn: true, pi
 let CFG = Object.assign({}, CFG_DEF, LS.get('cfg', {}));
 if (!CFG.v3) { CFG.mktW = 0.90; CFG.mktWt = 0.95; CFG.v3 = 1; CFG.v2 = 1; }   // v3: teste às cegas em 11 épocas reais → mais peso na casa
 CFG.bank = Object.assign({}, CFG_DEF.bank, CFG.bank || {});
+if (CFG.botV !== 1) { CFG.piOn = true; CFG.botV = 1; }   // o piloto passou a ser o «Tó sozinho», ligado de origem
 const saveDB = () => LS.set('db', DB);
 const saveBets = () => LS.set('bets', BETS);
 
@@ -407,9 +408,9 @@ function snapshotPreds() {
 }
 
 /* =====================================================================
-   3) CONTAS: Tu · Mister Tó · Piloto automático
+   3) CONTAS: Tu · Mister Tó · Tó sozinho (bot)
    ===================================================================== */
-const ACC = { tu: { n: 'Tu', ic: 'star', c: 'var(--c-blue)' }, to: { n: 'Mister Tó', ic: 'whistle', c: 'var(--c-orange)' }, pi: { n: 'Piloto', ic: 'robot', c: 'var(--c-purple)' } };
+const ACC = { tu: { n: 'Tu', ic: 'star', c: 'var(--c-blue)' }, to: { n: 'Mister Tó', ic: 'whistle', c: 'var(--c-orange)' }, pi: { n: 'Tó sozinho', ic: 'robot', c: 'var(--c-purple)' } };
 function accStats(acc) {
   const B = BETS.filter(b => b.acc === acc);
   const dep = DEPOS.filter(d => d.acc === acc).reduce((s, d) => s + d.v, 0);
@@ -464,30 +465,43 @@ function settleAll() {
   return n;
 }
 /* 🤖 piloto: aposta sozinho em cada «valor» do Tó (uma por jogo, antes do início) */
+/* =====================================================================
+   🤖 Tó SOZINHO: um bot que aposta sozinho, sem ninguém lhe mexer.
+   Regra fixa: em cada jogo das próximas 36 horas, aposta no vencedor que a
+   cabeça dele (o modelo puro, sem copiar as odds) prefere, à odd da ESPN do
+   momento. Valor fixo. Serve para ver como ele se porta de verdade.
+   Teste às cegas 2024-25 e 2025-26 (1.785 jogos) às odds de fecho: acertou 66% e deu −3% por aposta.
+   ===================================================================== */
+const BOT_TEST = { acerto: 0.661, roi: -0.030, n: 1785, txt: '2024-26 (1.785 jogos): 66% · −3% por aposta' };
 function pilotRun() {
   if (!CFG.piOn) return 0;
   const now = Date.now(); let n = 0;
   const done = new Set(BETS.filter(b => b.acc === 'pi' && b.mk !== 'multi').map(b => b.g));
-  Object.values(DB.games).filter(g => gValid(g) && g.s === 'pre' && !done.has(g.id)).forEach(g => {
+  Object.values(DB.games).filter(g => gValid(g) && g.s === 'pre' && !done.has(g.id) && g.o && g.o.hml > 1 && g.o.aml > 1).sort((x, y) => x.d < y.d ? -1 : 1).forEach(g => {
     const t0 = new Date(g.d).getTime(); if (t0 < now + 5 * 60e3 || t0 > now + 36 * 3600e3) return;
-    const P = predict(g), v = P.value;
-    if (!v || (v.mk === 'ml' && v.der)) return;                 // sem odd verdadeira de vencedor, o piloto não arrisca
-    const stake = Math.max(CFG.min, r2(CFG.piStake));
-    if (accStats('pi').bal < stake) return;
-    newBet('pi', g, v, stake, { p: r2(v.p), ev: r2(v.ev), der: v.der });
+    const P = predict(g), ph = Phi(P.mModel / SDM), sel = ph >= 0.5 ? 'h' : 'a', odd = sel === 'h' ? g.o.hml : g.o.aml;
+    const nva = (1 / g.o.hml) / (1 / g.o.hml + 1 / g.o.aml);
+    const stake = Math.max(CFG.min, r2(CFG.piStake)); if (accStats('pi').bal < stake) return;
+    newBet('pi', g, { mk: 'ml', sel, line: null, odd }, stake, { auto: 1, pk: r2(sel === 'h' ? ph : 1 - ph), nv: r2(sel === 'h' ? nva : 1 - nva), src: g.o.p || 'ESPN' });
     n++;
   });
-  // e aposta o boletim seguro desta noite (uma vez por noite, só com 2+ seleções)
-  const night = todayET(), key = 'piSafe_' + night;
-  if (!LS.get(key, 0)) {
-    const C = safeCands(0), pick = safeAuto(C);
-    const legs = C.filter((_, i) => pick.has(i));
-    const stake = Math.max(CFG.min, r2(CFG.piStake));
-    if (legs.length >= 2 && accStats('pi').bal >= stake) { newMulti('pi', legs.map(safeLeg), stake, { src: 'seguro', p: r2(legs.reduce((a, c) => a * c.p, 1)), der: true }); LS.set(key, 1); n++; }
-  }
   if (n) saveBets();
   return n;
 }
+function botStats() {
+  const B = BETS.filter(b => b.acc === 'pi' && b.auto), S = B.filter(b => b.st === 'won' || b.st === 'lost' || b.st === 'push');
+  const w = S.filter(b => b.st === 'won').length, l = S.filter(b => b.st === 'lost').length;
+  const plOf = L => r2(L.reduce((s, b) => s + (b.ret || 0) - b.stake, 0));
+  const dog = S.filter(b => b.nv != null && b.nv < 0.5), fav = S.filter(b => b.nv != null && b.nv >= 0.5), conf = S.filter(b => b.pk >= 0.7);
+  const st = S.reduce((s, b) => s + b.stake, 0), ret = S.reduce((s, b) => s + (b.ret || 0), 0);
+  const byD = {}; S.forEach(b => { const k = String(b.gd).slice(0, 10); (byD[k] = byD[k] || []).push(b); });
+  const days = Object.entries(byD).map(([k, L]) => ({ k, w: L.filter(b => b.st === 'won').length, l: L.filter(b => b.st === 'lost').length, pl: plOf(L) })).sort((a, b) => a.k < b.k ? 1 : -1);
+  const byG = {}; S.forEach(b => { const k = ''; if (!k) return; const o = byG[k] = byG[k] || { n: 0, w: 0, pl: 0 }; o.n++; if (b.st === 'won') o.w++; o.pl += (b.ret || 0) - b.stake; });
+  let run = 0; const curve = S.slice().sort((a, b) => (a.tset || a.t) - (b.tset || b.t)).map(b => (run += (b.ret || 0) - b.stake));
+  return { n: B.length, open: B.filter(b => b.st === 'open').length, openL: B.filter(b => b.st === 'open'), w, l, p: S.length - w - l, hit: w + l ? w / (w + l) : null, roi: st ? (ret - st) / st : null, pl: r2(ret - st),
+    dogN: dog.length, dogW: dog.filter(b => b.st === 'won').length, dogPl: plOf(dog), favN: fav.length, favW: fav.filter(b => b.st === 'won').length, favPl: plOf(fav), confN: conf.length, confW: conf.filter(b => b.st === 'won').length, days, byG, curve };
+}
+
 
 /* =====================================================================
    🛡️ BOLETIM SEGURO (como no Mister Zé: só jogos do próprio dia)
